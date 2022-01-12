@@ -1,0 +1,184 @@
+---
+title: "Biostat 203B Homework 1"
+author: Tomoki Okuno
+subtitle: 805851067
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Display machine information for reproducibility:
+```{r, eval=T}
+sessionInfo()
+```
+
+## Q1. Git/GitHub
+
+1. *Apply for the [Student Developer Pack](https://education.github.com/pack) at GitHub using your UCLA email. You'll get GitHub Pro account for free (unlimited public and private repositories).*  
+**Done.**
+
+2. *Create a **private** repository `biostat-203b-2022-winter` and add `Hua-Zhou` and `maschepps` as your collaborators with write permission.*  
+**Done.**
+
+3. Top directories of the repository should be `hw1`, `hw2`, ... Maintain two branches `main` and `develop`. The `develop` branch will be your main playground, the place where you develop solution (code) to homework problems and write up report. The `main` branch will be your presentation area. Submit your homework files (R markdown file `Rmd`, `html` file converted from R markdown, all code and extra data sets to reproduce results) in `main` branch.
+
+4. After each homework due date, teaching assistant and instructor will check out your main branch for grading. Tag each of your homework submissions with tag names `hw1`, `hw2`, ... Tagging time will be used as your submission time. That means if you tag your `hw1` submission after deadline, penalty points will be deducted for late submission.
+
+
+## Q2. Data ethics training
+- My completion report:  
+https://www.citiprogram.org/verify/?kf7337c50-ab63-4a0b-b730-f94965ea93e0-46526237
+
+- My completion certificate:  
+https://www.citiprogram.org/verify/?w5ed2f46d-5069-4c33-ad06-a8e12eeb07c0-46526237
+
+## Q3. Linux Shell Commands
+
+1. *The `/mnt/mimiciv/1.0` folder on teaching server contains data sets from MIMIC-IV. Refer to the documentation <https://mimic.mit.edu/docs/iv/> for details of data files.*  
+    ```{bash, eval=T}
+    ls -l /mnt/mimiciv/1.0
+    ```
+
+2. *Display the contents in the folders `core`, `hosp`, `icu`.*
+    ```{bash, eval=T}
+    ls -l /mnt/mimiciv/1.0/core/
+    ls -l /mnt/mimiciv/1.0/hosp/
+    ls -l /mnt/mimiciv/1.0/icu/
+    ```
+Why are these data files distributed as `.csv.gz` files instead of `.csv` (comma separated values) files? Read the page <https://mimic.mit.edu/docs/iv/> to understand what's in each folder.
+
+    **The reason why their files are distributed as `.csv.gz` files is because:**
+    - **Compressing a large file can reduce the burden of operating, such as uploading, for us.**
+    - **Classifying these files into appropriate units (modules) makes it easier for us to understand the contents of each file.**
+
+3. *Briefly describe what bash commands `zcat`, `zless`, `zmore`, and `zgrep` do.*
+
+    **What these five commands have in common is to display the compressed file without decompressing it.  
+    `zcat`, `zless`, `zmore`, and `zgrep` can perform the equivalent of `cat`, `less`, `more`, and `grep`, respectively.**
+    
+4. *What's the output of following bash script?*
+    ```{bash, eval=T}
+    #, eval=F# 
+    for datafile in /mnt/mimiciv/1.0/core/*.gz
+      do
+        ls -l $datafile
+      done
+    ```
+    ```{bash, eval=T}
+    ls -l /mnt/mimiciv/1.0/core/ | grep '.gz'
+    ```
+**The output of the script is a list of all the compressed files in a long format.**
+
+    *Display the number of lines in each data file using a similar loop.*
+    ```{bash, eval=T} 
+    for datafile in /mnt/mimiciv/1.0/core/*.gz
+      do
+        wc -l $datafile
+      done
+    ```
+
+5. *Display the first few lines of `admissions.csv.gz`.*
+    ```{bash, eval=T} 
+    zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | head -4
+    ```
+   *How many rows are in this data file?*
+    ```{bash, eval=T} 
+    zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | awk 'END { print NR }'
+    #zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | wc -l
+    ```
+
+   *How many unique patients (identified by `subject_id`) are in this data file?*
+    ```{bas, eval=Th} 
+    zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | sort -u -t, -k1,1 | wc -l
+    ```
+
+6. *What are the possible values taken by each of the variable `admission_type`, `admission_location`, `insurance`, and `ethnicity`? Also report the count for each unique value of these variables.*
+
+    ```{bash, eval=T} 
+    #zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | sort -u -t, -k6,6 | awk -F"," '{print $6}'
+    zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | awk -F"," 'NR==1{print $6};NR>1{print $6 | "sort | uniq -c"}' # | sort -nr
+    ```
+    ```{bash, eval=T} 
+    #zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | awk -F"," 'NR==1{print $7};NR>1{print $7 | "sort -u"}'
+    zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | awk -F"," 'NR==1{print $7};NR>1{print $7 | "sort | uniq -c"}' # | sort -nr
+    ```
+    ```{bash, eval=T} 
+    #zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | sort -u -t, -k9,9 | awk -F"," '{print $9}'
+    zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | awk -F"," 'NR==1{print $9};NR>1{print $9 | "sort | uniq -c"}' # | sort -nr | head
+    ```
+    ```{bash, eval=T} 
+    zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | awk -F"," 'NR==1{print $12};NR>1{print $12 | "sort | uniq -c"}' # | sort -nr | head
+    ```
+
+## Q4. Who's popular in Price and Prejudice
+
+1. *You and your friend just have finished reading *Pride and Prejudice* by Jane Austen. Among the four main characters in the book, Elizabeth, Jane, Lydia, and Darcy, your friend thinks that Darcy was the most mentioned. You, however, are certain it was Elizabeth. Obtain the full text of the novel from <http://www.gutenberg.org/cache/epub/42671/pg42671.txt> and save to your local folder. *
+    ```{bash, eval=FALSE}
+    wget -nc http://www.gutenberg.org/cache/epub/42671/pg42671.txt
+    ```
+Done.
+
+    *Explain what `wget -nc` does.*
+    The `wget` is a command that not only downloads source code and binaries, but also allows you to retrieve an entire website or a specific hierarchy at once. The `-nc` option indicates that a file is not retrieved again if the file has already been downloaded.
+    
+    Complete the following loop to tabulate the number of times each of the four characters is mentioned using Linux commands.*
+    ```{bash}
+    #wget -nc http://www.gutenberg.org/cache/epub/42671/pg42671.txt
+    for char in Elizabeth Jane Lydia Darcy
+    do
+      echo $char:
+      cat pg42671.txt | grep -o -i $char | wc -l
+    done
+    ```
+
+2. *What's the difference between the following two commands?*
+    ```{bash eval=FALSE}
+    echo 'hello, world' > test1.txt
+    ```
+    and
+    ```{bash eval=FALSE}
+    echo 'hello, world' >> test2.txt
+    ```
+The difference between `>` and `>>` is that `>` opens a file in overwrite mode, while `>>` opens a file in append mode.
+
+3. Using your favorite text editor (e.g., `vi`), type the following and save the file as `middle.sh`:
+    ```{bash eval=FALSE}
+    #!/bin/sh
+    # Select lines from the middle of a file.
+    # Usage: bash middle.sh filename end_line num_lines
+    head -n "$2" "$1" | tail -n "$3"
+    ```
+Using `chmod` make the file executable by the owner, and run 
+    ```{bash eval=FALSE}
+    ./middle.sh pg42671.txt 20 5
+    ```
+Explain the output. Explain the meaning of `"$1"`, `"$2"`, and `"$3"` in this shell script. Why do we need the first line of the shell script?
+
+## Q5. More fun with Linux
+
+Try following commands in Bash and interpret the results: `cal`, `cal 2021`, `cal 9 1752` (anything unusual?), `date`, `hostname`, `arch`, `uname -a`, `uptime`, `who am i`, `who`, `w`, `id`, `last | head`, `echo {con,pre}{sent,fer}{s,ed}`, `time sleep 5`, `history | tail`.  
+    ```{bash eval}
+    cal
+    cal 2021
+    cal 9 1752
+    ```
+    `cal` is a command to display a calender. By default, it displays the calendar for the current month, but we can also specify the year (e.g.,`cal 2021`) or the year and month (e.g., `cal 9 2021`) to display.  
+    Note that, in September 1752, since the British Empire, including the 13 colonies in North America, switched from the Julian calendar to the Gregorian calendar, the calendar does not have September 3 through September 13, which is reflected in the command.
+
+    ```{bash}
+    date
+    hostname
+    arch
+    uname -a
+    uptime
+    who am i
+    who
+    w
+    id
+    last | head
+    echo {con,pre}{sent,fer}{s,ed}
+    time sleep 5
+    history | tail
+    ```
