@@ -100,26 +100,26 @@ How many unique patients (identified by `subject_id`) are in this data file?
     zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
     tail -n +2 | sort | uniq -f 0 -w 8 | wc -l
     zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-    awk -F"," 'NR>1{print $1 | "sort | uniq "}' | wc -l
+    awk -F"," 'NR > 1 {print $1 | "sort | uniq"}' | wc -l
     ```
 
 6. What are the possible values taken by each of the variable `admission_type`, `admission_location`, `insurance`, and `ethnicity`? Also report the count for each unique value of these variables.
 
     ```{bash} 
     zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-    awk -F"," 'NR==1{print $6};NR>1{print $6 | "sort | uniq -c"}'
+    awk -F"," 'NR == 1 {print $6}; NR > 1 {print $6 | "sort | uniq -c"}'
     ```
     ```{bash} 
     zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-    awk -F"," 'NR==1{print $7};NR>1{print $7 | "sort | uniq -c"}'
+    awk -F"," 'NR == 1 {print $7}; NR > 1 {print $7 | "sort | uniq -c"}'
     ```
     ```{bash} 
     zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-    awk -F"," 'NR==1{print $9};NR>1{print $9 | "sort | uniq -c"}'
+    awk -F"," 'NR == 1 {print $9}; NR > 1 {print $9 | "sort | uniq -c"}'
     ```
     ```{bash} 
     zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-    awk -F"," 'NR==1{print $12};NR>1{print $12 | "sort | uniq -c"}'
+    awk -F"," 'NR == 1 {print $12}; NR > 1 {print $12 | "sort | uniq -c"}'
     ```
 
 ## Q4. Who's popular in Price and Prejudice
@@ -128,7 +128,7 @@ How many unique patients (identified by `subject_id`) are in this data file?
     ```{bash, eval=FALSE}
     wget -nc http://www.gutenberg.org/cache/epub/42671/pg42671.txt
     ```
-**Done.**
+**Done.*＊
 
     Explain what `wget -nc` does.  
     **`wget` is a command that not only downloads source code and binaries, but also allows you to retrieve an entire website or a specific hierarchy at once. `-nc` option indicates that a file is not retrieved again if the file has already been downloaded.**
@@ -208,7 +208,8 @@ The following code gives the same output:**
 
     ```{bash}
     who am i
-    #tomokiokuno ttys000  Jan 10 15:27 
+    # Output on my local terminal below
+    # tomokiokuno ttys000  Jan 10 15:27 
     ```
     ```{bash}
     who

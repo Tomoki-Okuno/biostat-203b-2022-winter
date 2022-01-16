@@ -305,17 +305,18 @@ ls -l /mnt/mimiciv/1.0/core/ | grep &#39;.gz&#39;</code></pre>
 ## 15585972,24941086,2123-10-07 23:56:00,2123-10-12 11:22:00,,ELECTIVE,,HOME,Other,ENGLISH,,WHITE,,,0
 ## 11989120,21965160,2147-01-14 09:00:00,2147-01-17 14:25:00,,ELECTIVE,,HOME,Other,ENGLISH,,UNKNOWN,,,0</code></pre>
 <p>How many rows are in this data file?</p>
-<pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | tail -n +2 | wc -l
-#zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | awk &#39;NR&gt;1{print NR}&#39; | wc -l</code></pre>
+<pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | tail -n +2 | wc -l</code></pre>
 <pre><code>## 523740</code></pre>
 <p>How many unique patients (identified by <code>subject_id</code>) are in this data file?</p>
-<pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | tail -n +2 | sort | uniq -f 0 -w 8 | wc -l
-zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | awk -F&quot;,&quot; &#39;NR&gt;1{print $1 | &quot;sort | uniq &quot;}&#39; | wc -l</code></pre>
+<pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
+tail -n +2 | sort | uniq -f 0 -w 8 | wc -l
+zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
+awk -F&quot;,&quot; &#39;NR &gt; 1 {print $1 | &quot;sort | uniq&quot;}&#39; | wc -l</code></pre>
 <pre><code>## 256878
 ## 256878</code></pre></li>
 <li><p>What are the possible values taken by each of the variable <code>admission_type</code>, <code>admission_location</code>, <code>insurance</code>, and <code>ethnicity</code>? Also report the count for each unique value of these variables.</p>
-<pre class="bash"><code>#zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | sort -u -t, -k6,6 | awk -F&quot;,&quot; &#39;{print $6}&#39;
-zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | awk -F&quot;,&quot; &#39;NR==1{print $6};NR&gt;1{print $6 | &quot;sort | uniq -c&quot;}&#39;</code></pre>
+<pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
+awk -F&quot;,&quot; &#39;NR == 1 {print $6}; NR &gt; 1 {print $6 | &quot;sort | uniq -c&quot;}&#39;</code></pre>
 <pre><code>## admission_type
 ##    7254 AMBULATORY OBSERVATION
 ##   21581 DIRECT EMER.
@@ -326,8 +327,8 @@ zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | awk -F&quot;,&quot; &#39;NR==1{pr
 ##   55497 OBSERVATION ADMIT
 ##   41074 SURGICAL SAME DAY ADMISSION
 ##   47930 URGENT</code></pre>
-<pre class="bash"><code>#zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | awk -F&quot;,&quot; &#39;NR==1{print $7};NR&gt;1{print $7 | &quot;sort -u&quot;}&#39;
-zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | awk -F&quot;,&quot; &#39;NR==1{print $7};NR&gt;1{print $7 | &quot;sort | uniq -c&quot;}&#39;</code></pre>
+<pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
+awk -F&quot;,&quot; &#39;NR == 1 {print $7}; NR &gt; 1 {print $7 | &quot;sort | uniq -c&quot;}&#39;</code></pre>
 <pre><code>## admission_location
 ##   60435 
 ##     191 AMBULATORY SURGERY TRANSFER
@@ -341,13 +342,14 @@ zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | awk -F&quot;,&quot; &#39;NR==1{pr
 ##   39121 TRANSFER FROM HOSPITAL
 ##    4063 TRANSFER FROM SKILLED NURSING FACILITY
 ##   16660 WALK-IN/SELF REFERRAL</code></pre>
-<pre class="bash"><code>#zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | sort -u -t, -k9,9 | awk -F&quot;,&quot; &#39;{print $9}&#39;
-zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | awk -F&quot;,&quot; &#39;NR==1{print $9};NR&gt;1{print $9 | &quot;sort | uniq -c&quot;}&#39; # | sort -nr</code></pre>
+<pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
+awk -F&quot;,&quot; &#39;NR == 1 {print $9}; NR &gt; 1 {print $9 | &quot;sort | uniq -c&quot;}&#39;</code></pre>
 <pre><code>## insurance
 ##   50850 Medicaid
 ##  171360 Medicare
 ##  301530 Other</code></pre>
-<pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | awk -F&quot;,&quot; &#39;NR==1{print $12};NR&gt;1{print $12 | &quot;sort | uniq -c&quot;}&#39; # | sort -nr</code></pre>
+<pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
+awk -F&quot;,&quot; &#39;NR == 1 {print $12}; NR &gt; 1 {print $12 | &quot;sort | uniq -c&quot;}&#39;</code></pre>
 <pre><code>## ethnicity
 ##    1535 AMERICAN INDIAN/ALASKA NATIVE
 ##   24506 ASIAN
@@ -364,38 +366,31 @@ zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | awk -F&quot;,&quot; &#39;NR==1{pr
 <ol style="list-style-type: decimal">
 <li><p>You and your friend just have finished reading <em>Pride and Prejudice</em> by Jane Austen. Among the four main characters in the book, Elizabeth, Jane, Lydia, and Darcy, your friend thinks that Darcy was the most mentioned. You, however, are certain it was Elizabeth. Obtain the full text of the novel from <a href="http://www.gutenberg.org/cache/epub/42671/pg42671.txt" class="uri">http://www.gutenberg.org/cache/epub/42671/pg42671.txt</a> and save to your local folder.</p>
 <pre class="bash"><code>wget -nc http://www.gutenberg.org/cache/epub/42671/pg42671.txt</code></pre>
-<p><strong>Done.</strong></p>
+<p>**Done.*＊</p>
 <p>Explain what <code>wget -nc</code> does.<br />
 <strong><code>wget</code> is a command that not only downloads source code and binaries, but also allows you to retrieve an entire website or a specific hierarchy at once. <code>-nc</code> option indicates that a file is not retrieved again if the file has already been downloaded.</strong></p>
 <p>Complete the following loop to tabulate the number of times each of the four characters is mentioned using Linux commands.<br />
-<strong>Using <code>-o</code> option, it is possible to count the words instead of just counting the lines containing each name.</strong></p>
-<pre class="bash"><code>#wget -nc http://www.gutenberg.org/cache/epub/42671/pg42671.txt
+<strong>Using <code>-o</code> option, it is possible to count the words containing each name instead of just counting the lines.</strong></p>
+<pre class="bash"><code># wget -nc http://www.gutenberg.org/cache/epub/42671/pg42671.txt
 for char in Elizabeth Jane Lydia Darcy
 do
   echo $char:
   cat pg42671.txt | grep -o $char | wc -l
-  cat pg42671.txt | grep -o -i $char | wc -l #ignore uppercase vs. lowercase.
+  # ignore uppercase vs. lowercase.
+  cat pg42671.txt | grep -o -i $char | wc -l 
 done</code></pre>
 <pre><code>## Elizabeth:
-## cat: pg42671.txt: No such file or directory
-## 0
-## cat: pg42671.txt: No such file or directory
-## 0
+## 634
+## 634
 ## Jane:
-## cat: pg42671.txt: No such file or directory
-## 0
-## cat: pg42671.txt: No such file or directory
-## 0
+## 294
+## 294
 ## Lydia:
-## cat: pg42671.txt: No such file or directory
-## 0
-## cat: pg42671.txt: No such file or directory
-## 0
+## 170
+## 171
 ## Darcy:
-## cat: pg42671.txt: No such file or directory
-## 0
-## cat: pg42671.txt: No such file or directory
-## 0</code></pre></li>
+## 417
+## 418</code></pre></li>
 <li><p>What’s the difference between the following two commands?</p>
 <pre class="bash"><code>echo &#39;hello, world&#39; &gt; test1.txt</code></pre>
 <p>and</p>
@@ -410,7 +405,11 @@ head -n &quot;$2&quot; &quot;$1&quot; | tail -n &quot;$3&quot;</code></pre>
 <p>Using <code>chmod</code> make the file executable by the owner, and run</p>
 <pre class="bash"><code>chmod 700 ./middle.sh
 ./middle.sh pg42671.txt 20 5</code></pre>
-<pre><code>## head: cannot open ‘pg42671.txt’ for reading: No such file or directory</code></pre>
+<pre><code>## 
+## Author: Jane Austen
+## 
+## Editor: R. W. (Robert William) Chapman
+## </code></pre>
 <p>Explain the output.<br />
 <strong>The output is the print from the 16th line to the 20th line in <code>pg42671.txt</code></strong>. Explain the meaning of <code>&quot;$1&quot;</code>, <code>&quot;$2&quot;</code>, and <code>&quot;$3&quot;</code> in this shell script.<br />
 The following code gives the same output:**</p>
@@ -479,7 +478,7 @@ date</code></pre>
 ## 
 ## 
 ## 
-## Sun Jan 16 02:26:56 UTC 2022</code></pre>
+## Sun Jan 16 03:25:16 UTC 2022</code></pre>
 <ul>
 <li><code>cal</code> is a command to display the calendar for the current month, but you can also specify the year (e.g.,<code>cal 2021</code>) or the year and month (e.g., <code>cal 9 1752</code>) to display.<br />
 Note that, for <code>cal 9 1752</code>, since the British Empire switched from the Julian calendar to the Gregorian calendar, <strong>there are no records from September 3 to 13 for 1752</strong>, which is reflected in the command.</li>
@@ -492,7 +491,7 @@ uptime</code></pre>
 <pre><code>## biostat-203b-teaching-server
 ## x86_64
 ## Linux biostat-203b-teaching-server 3.10.0-1160.49.1.el7.x86_64 #1 SMP Tue Nov 30 15:51:32 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
-##  02:26:56 up 13 days,  2:00,  3 users,  load average: 0.43, 0.15, 0.09</code></pre>
+##  03:25:16 up 13 days,  2:58,  3 users,  load average: 0.27, 0.10, 0.06</code></pre>
 <ul>
 <li><code>hostname</code> displays the hostname of the server you are currently logged in.</li>
 <li><code>arch</code> displays the architecture (hardware name) of the Linux machine you are using.</li>
@@ -500,17 +499,18 @@ uptime</code></pre>
 <li><code>uptime</code> displays the running time, the number of users, and the average system load on Linux.</li>
 </ul>
 <pre class="bash"><code>who am i
-#tomokiokuno ttys000  Jan 10 15:27 </code></pre>
+# Output on my local terminal below
+# tomokiokuno ttys000  Jan 10 15:27 </code></pre>
 <pre class="bash"><code>who</code></pre>
 <pre><code>## tomokiokuno0528 pts/1        2022-01-11 01:13 (42.166.94.34.bc.googleusercontent.com)
 ## tomokiokuno0528 pts/3        2022-01-10 23:43 (42.166.94.34.bc.googleusercontent.com)
 ## rozeta   pts/8        2022-01-16 00:13 (cpe-172-117-56-210.socal.res.rr.com)</code></pre>
 <pre class="bash"><code>w</code></pre>
-<pre><code>##  02:26:56 up 13 days,  2:00,  3 users,  load average: 0.43, 0.15, 0.09
+<pre><code>##  03:25:17 up 13 days,  2:58,  3 users,  load average: 0.27, 0.10, 0.06
 ## USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
 ## tomokiok pts/1    42.166.94.34.bc. Tue01    5days  0.01s  0.01s -bash
 ## tomokiok pts/3    42.166.94.34.bc. Mon23    5days  0.64s  0.46s ssh -i /home/tomokiokuno0528/.ssh/id_rsa tomokiokuno0528@server.ucla-biostat-203b.com
-## rozeta   pts/8    cpe-172-117-56-2 00:13    2:11m  0.02s  0.02s -bash</code></pre>
+## rozeta   pts/8    cpe-172-117-56-2 00:13    3:09m  0.02s  0.02s -bash</code></pre>
 <pre class="bash"><code>id</code></pre>
 <pre><code>## uid=1025(tomokiokuno0528) gid=1027(tomokiokuno0528) groups=1027(tomokiokuno0528) context=system_u:system_r:initrc_t:s0</code></pre>
 <pre class="bash"><code>last | head</code></pre>
@@ -536,13 +536,14 @@ uptime</code></pre>
 <pre class="bash"><code>time sleep 5</code></pre>
 <pre><code>## 
 ## real 0m5.001s
-## user 0m0.001s
-## sys  0m0.000s</code></pre>
+## user 0m0.000s
+## sys  0m0.001s</code></pre>
 <ul>
 <li><code>echo {con,pre}{sent,fer}{s,ed}</code> displays all texts formed by <span class="math inline">\(2^3=8\)</span> combinations.</li>
 <li><code>sleep 5</code> stops the shell for five minutes and <code>time</code> is a command to measure execute time of a command. Hence,<code>time sleep 5</code> is a command to check that the shell has been stopped for five minutes.</li>
 </ul>
 <pre class="bash"><code>history | tail
+# Outputs on my local terminal below
 # 503  arch
 # 504  uname -a
 # 505  uptime
