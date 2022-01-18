@@ -411,7 +411,8 @@ head -n &quot;$2&quot; &quot;$1&quot; | tail -n &quot;$3&quot;</code></pre>
 ## Editor: R. W. (Robert William) Chapman
 ## </code></pre>
 <p>Explain the output.<br />
-<strong>The output is the print from the 16th line to the 20th line in <code>pg42671.txt</code></strong>. Explain the meaning of <code>&quot;$1&quot;</code>, <code>&quot;$2&quot;</code>, and <code>&quot;$3&quot;</code> in this shell script.<br />
+<strong>The output is the print from the 16th line to the 20th line in <code>pg42671.txt</code></strong>.<br />
+Explain the meaning of <code>&quot;$1&quot;</code>, <code>&quot;$2&quot;</code>, and <code>&quot;$3&quot;</code> in this shell script.<br />
 <strong>The following code gives the same output:</strong></p>
 <pre class="bash"><code>head -20 pg42671.txt | tail -5</code></pre>
 <p><strong>which implies that <code>&quot;$1&quot;</code>=<code>pg42671.txt</code>, <code>&quot;$2&quot;</code>=<code>20</code>, and <code>&quot;$3&quot;</code>=<code>5</code>, that is, the column numbers next to <code>middle.sh</code> in the second line of the shell script.</strong></p>
@@ -478,7 +479,7 @@ date</code></pre>
 ## 
 ## 
 ## 
-## Tue Jan 18 01:06:51 UTC 2022</code></pre>
+## Tue Jan 18 01:14:59 UTC 2022</code></pre>
 <ul>
 <li><code>cal</code> is a command to display the calendar for the current month, but you can also specify the year (e.g.,<code>cal 2021</code>) or the year and month (e.g., <code>cal 9 1752</code>) to display.<br />
 Note that, for <code>cal 9 1752</code>, since the British Empire switched from the Julian calendar to the Gregorian calendar, <strong>there are no records from September 3 to 13 for 1752</strong>, which is reflected in the command.</li>
@@ -491,7 +492,7 @@ uptime</code></pre>
 <pre><code>## biostat-203b-teaching-server
 ## x86_64
 ## Linux biostat-203b-teaching-server 3.10.0-1160.49.1.el7.x86_64 #1 SMP Tue Nov 30 15:51:32 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
-##  01:06:51 up 15 days, 40 min,  3 users,  load average: 1.09, 0.60, 0.32</code></pre>
+##  01:14:59 up 15 days, 48 min,  3 users,  load average: 1.21, 0.80, 0.49</code></pre>
 <ul>
 <li><code>hostname</code> displays the hostname of the server you are currently logged in.</li>
 <li><code>arch</code> displays the architecture (hardware name) of the Linux machine you are using.</li>
@@ -506,11 +507,11 @@ uptime</code></pre>
 ## tomokiokuno0528 pts/3        2022-01-10 23:43 (42.166.94.34.bc.googleusercontent.com)
 ## maschepps pts/6        2022-01-17 19:33 (74.213.228.243)</code></pre>
 <pre class="bash"><code>w</code></pre>
-<pre><code>##  01:06:51 up 15 days, 40 min,  3 users,  load average: 1.09, 0.60, 0.32
+<pre><code>##  01:14:59 up 15 days, 48 min,  3 users,  load average: 1.21, 0.80, 0.49
 ## USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
-## tomokiok pts/1    42.166.94.34.bc. 11Jan22  6days  0.01s  0.01s -bash
-## tomokiok pts/3    42.166.94.34.bc. 10Jan22  6days  0.81s  0.63s ssh -i /home/tomokiokuno0528/.ssh/id_rsa tomokiokuno0528@server.ucla-biostat-203b.com
-## maschepp pts/6    74.213.228.243   19:33    5:23m  0.03s  0.03s -bash</code></pre>
+## tomokiok pts/1    42.166.94.34.bc. 11Jan22  7days  0.01s  0.01s -bash
+## tomokiok pts/3    42.166.94.34.bc. 10Jan22  7days  0.81s  0.63s ssh -i /home/tomokiokuno0528/.ssh/id_rsa tomokiokuno0528@server.ucla-biostat-203b.com
+## maschepp pts/6    74.213.228.243   19:33    5:31m  0.03s  0.03s -bash</code></pre>
 <pre class="bash"><code>id</code></pre>
 <pre><code>## uid=1025(tomokiokuno0528) gid=1027(tomokiokuno0528) groups=1027(tomokiokuno0528) context=system_u:system_r:initrc_t:s0</code></pre>
 <pre class="bash"><code>last | head</code></pre>
@@ -536,7 +537,7 @@ uptime</code></pre>
 <pre class="bash"><code>time sleep 5</code></pre>
 <pre><code>## 
 ## real 0m5.001s
-## user 0m0.001s
+## user 0m0.000s
 ## sys  0m0.001s</code></pre>
 <ul>
 <li><code>echo {con,pre}{sent,fer}{s,ed}</code> displays all texts formed by <span class="math inline">\(2^3=8\)</span> combinations.</li>

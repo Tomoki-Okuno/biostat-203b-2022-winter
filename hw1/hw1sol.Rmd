@@ -171,7 +171,7 @@ How many unique patients (identified by `subject_id`) are in this data file?
     ./middle.sh pg42671.txt 20 5
     ```
 Explain the output.  
-**The output is the print from the 16th line to the 20th line in `pg42671.txt`**. 
+**The output is the print from the 16th line to the 20th line in `pg42671.txt`**.  
 Explain the meaning of `"$1"`, `"$2"`, and `"$3"` in this shell script.  
 **The following code gives the same output:**
     ```{bash eval=F}
