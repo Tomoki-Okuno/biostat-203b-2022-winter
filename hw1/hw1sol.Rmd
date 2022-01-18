@@ -73,11 +73,11 @@ Why are these data files distributed as `.csv.gz` files instead of `.csv` (comma
         ls -l $datafile
       done
     ```
-    ```{bash eval=F}
-    # Different command
+**By the way, this following code gives almost the same output.**
+    ```{bash eval=T}
     ls -l /mnt/mimiciv/1.0/core/ | grep '.gz'
     ```
-**The output of the script is a list of all the compressed (`.gz`) files in a long format.**
+**This output of the script is a list of all the compressed (`.gz`) files in a long format.**
 
     Display the number of lines in each data file using a similar loop.
     ```{bash} 
@@ -89,7 +89,7 @@ Why are these data files distributed as `.csv.gz` files instead of `.csv` (comma
 
 5. Display the first few lines of `admissions.csv.gz`.
     ```{bash} 
-    zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | head -4
+    zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | head -3
     ```
 How many rows are in this data file?
     ```{bash} 
@@ -98,28 +98,28 @@ How many rows are in this data file?
 How many unique patients (identified by `subject_id`) are in this data file?
     ```{bash} 
     zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-    tail -n +2 | sort | uniq -f 0 -w 8 | wc -l
+      tail -n +2 | sort | uniq -f 0 -w 8 | wc -l
     zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-    awk -F"," 'NR > 1 {print $1 | "sort | uniq"}' | wc -l
+      awk -F"," 'NR > 1 {print $1 | "sort | uniq"}' | wc -l
     ```
 
 6. What are the possible values taken by each of the variable `admission_type`, `admission_location`, `insurance`, and `ethnicity`? Also report the count for each unique value of these variables.
 
     ```{bash} 
     zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-    awk -F"," 'NR == 1 {print $6}; NR > 1 {print $6 | "sort | uniq -c"}'
+      awk -F"," 'NR == 1 {print $6}; NR > 1 {print $6 | "sort | uniq -c"}'
     ```
     ```{bash} 
     zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-    awk -F"," 'NR == 1 {print $7}; NR > 1 {print $7 | "sort | uniq -c"}'
+      awk -F"," 'NR == 1 {print $7}; NR > 1 {print $7 | "sort | uniq -c"}'
     ```
     ```{bash} 
     zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-    awk -F"," 'NR == 1 {print $9}; NR > 1 {print $9 | "sort | uniq -c"}'
+      awk -F"," 'NR == 1 {print $9}; NR > 1 {print $9 | "sort | uniq -c"}'
     ```
     ```{bash} 
     zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-    awk -F"," 'NR == 1 {print $12}; NR > 1 {print $12 | "sort | uniq -c"}'
+      awk -F"," 'NR == 1 {print $12}; NR > 1 {print $12 | "sort | uniq -c"}'
     ```
 
 ## Q4. Who's popular in Price and Prejudice
@@ -236,7 +236,7 @@ Explain the meaning of `"$1"`, `"$2"`, and `"$3"` in this shell script.
     time sleep 5
     ```
     - `echo {con,pre}{sent,fer}{s,ed}` displays all texts formed by $2^3=8$ combinations.
-    - `sleep 5` stops the shell for five minutes and `time` is a command to measure execute time of a command. Hence,`time sleep 5` is a command to check that the shell has been stopped for five minutes. 
+    - `sleep 5` stops the shell for five seconds and `time` is a command to measure execute time of a command. Hence,`time sleep 5` is a command to check that the shell has been stopped for five seconds. 
     
     ```{bash}
     history | tail
