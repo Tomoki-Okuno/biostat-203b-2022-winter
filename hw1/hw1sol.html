@@ -309,16 +309,17 @@ ls -l /mnt/mimiciv/1.0/icu/</code></pre>
 <p>How many rows are in this data file?</p>
 <pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | tail -n +2 | wc -l</code></pre>
 <pre><code>## 523740</code></pre>
-<p>How many unique patients (identified by <code>subject_id</code>) are in this data file?</p>
+<p>How many unique patients (identified by <code>subject_id</code>) are in this data file?<br />
+<strong>I offer two answers.</strong></p>
 <pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
   tail -n +2 | sort | uniq -f 0 -w 8 | wc -l
 zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-  awk -F&quot;,&quot; &#39;NR &gt; 1 {print $1 | &quot;sort | uniq&quot;}&#39; | wc -l</code></pre>
+  awk -F &quot;,&quot; &#39;NR &gt; 1 {print $1 | &quot;sort | uniq&quot;}&#39; | wc -l</code></pre>
 <pre><code>## 256878
 ## 256878</code></pre></li>
 <li><p>What are the possible values taken by each of the variable <code>admission_type</code>, <code>admission_location</code>, <code>insurance</code>, and <code>ethnicity</code>? Also report the count for each unique value of these variables.</p>
 <pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-  awk -F&quot;,&quot; &#39;NR == 1 {print $6}; NR &gt; 1 {print $6 | &quot;sort | uniq -c&quot;}&#39;</code></pre>
+  awk -F &quot;,&quot; &#39;NR == 1 {print $6}; NR &gt; 1 {print $6 | &quot;sort | uniq -c&quot;}&#39;</code></pre>
 <pre><code>## admission_type
 ##    7254 AMBULATORY OBSERVATION
 ##   21581 DIRECT EMER.
@@ -330,7 +331,7 @@ zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
 ##   41074 SURGICAL SAME DAY ADMISSION
 ##   47930 URGENT</code></pre>
 <pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-  awk -F&quot;,&quot; &#39;NR == 1 {print $7}; NR &gt; 1 {print $7 | &quot;sort | uniq -c&quot;}&#39;</code></pre>
+  awk -F &quot;,&quot; &#39;NR == 1 {print $7}; NR &gt; 1 {print $7 | &quot;sort | uniq -c&quot;}&#39;</code></pre>
 <pre><code>## admission_location
 ##   60435 
 ##     191 AMBULATORY SURGERY TRANSFER
@@ -345,13 +346,13 @@ zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
 ##    4063 TRANSFER FROM SKILLED NURSING FACILITY
 ##   16660 WALK-IN/SELF REFERRAL</code></pre>
 <pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-  awk -F&quot;,&quot; &#39;NR == 1 {print $9}; NR &gt; 1 {print $9 | &quot;sort | uniq -c&quot;}&#39;</code></pre>
+  awk -F &quot;,&quot; &#39;NR == 1 {print $9}; NR &gt; 1 {print $9 | &quot;sort | uniq -c&quot;}&#39;</code></pre>
 <pre><code>## insurance
 ##   50850 Medicaid
 ##  171360 Medicare
 ##  301530 Other</code></pre>
 <pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-  awk -F&quot;,&quot; &#39;NR == 1 {print $12}; NR &gt; 1 {print $12 | &quot;sort | uniq -c&quot;}&#39;</code></pre>
+  awk -F &quot;,&quot; &#39;NR == 1 {print $12}; NR &gt; 1 {print $12 | &quot;sort | uniq -c&quot;}&#39;</code></pre>
 <pre><code>## ethnicity
 ##    1535 AMERICAN INDIAN/ALASKA NATIVE
 ##   24506 ASIAN
@@ -481,7 +482,7 @@ date</code></pre>
 ## 
 ## 
 ## 
-## Tue Jan 18 20:55:10 UTC 2022</code></pre>
+## Tue Jan 18 22:05:49 UTC 2022</code></pre>
 <ul>
 <li><code>cal</code> is a command to display the calendar for the current month, but you can also specify the year (e.g.,<code>cal 2021</code>) or the year and month (e.g., <code>cal 9 1752</code>) to display.<br />
 Note that, for <code>cal 9 1752</code>, since the British Empire switched from the Julian calendar to the Gregorian calendar, <strong>there are no records from September 3 to 13 for 1752</strong>, which is reflected in the command.</li>
@@ -494,7 +495,7 @@ uptime</code></pre>
 <pre><code>## biostat-203b-teaching-server
 ## x86_64
 ## Linux biostat-203b-teaching-server 3.10.0-1160.49.1.el7.x86_64 #1 SMP Tue Nov 30 15:51:32 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
-##  20:55:10 up 15 days, 20:28,  3 users,  load average: 0.50, 0.22, 0.19</code></pre>
+##  22:05:49 up 15 days, 21:39,  3 users,  load average: 0.90, 0.55, 0.35</code></pre>
 <ul>
 <li><code>hostname</code> displays the hostname of the server you are currently logged in.</li>
 <li><code>arch</code> displays the architecture (hardware name) of the Linux machine you are using.</li>
@@ -509,15 +510,16 @@ uptime</code></pre>
 ## tomokiokuno0528 pts/3        2022-01-10 23:43 (42.166.94.34.bc.googleusercontent.com)
 ## maschepps pts/6        2022-01-17 19:33 (74.213.228.243)</code></pre>
 <pre class="bash"><code>w</code></pre>
-<pre><code>##  20:55:10 up 15 days, 20:28,  3 users,  load average: 0.50, 0.22, 0.19
+<pre><code>##  22:05:49 up 15 days, 21:39,  3 users,  load average: 0.90, 0.55, 0.35
 ## USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
 ## tomokiok pts/1    42.166.94.34.bc. 11Jan22  7days  0.01s  0.01s -bash
-## tomokiok pts/3    42.166.94.34.bc. 10Jan22  7days  0.88s  0.70s ssh -i /home/tomokiokuno0528/.ssh/id_rsa tomokiokuno0528@server.ucla-biostat-203b.com
-## maschepp pts/6    74.213.228.243   Mon19   25:11m  0.03s  0.03s -bash</code></pre>
+## tomokiok pts/3    42.166.94.34.bc. 10Jan22  7days  0.89s  0.71s ssh -i /home/tomokiokuno0528/.ssh/id_rsa tomokiokuno0528@server.ucla-biostat-203b.com
+## maschepp pts/6    74.213.228.243   Mon19   26:22m  0.03s  0.03s -bash</code></pre>
 <pre class="bash"><code>id</code></pre>
 <pre><code>## uid=1025(tomokiokuno0528) gid=1027(tomokiokuno0528) groups=1027(tomokiokuno0528) context=system_u:system_r:initrc_t:s0</code></pre>
 <pre class="bash"><code>last | head</code></pre>
-<pre><code>## huazhou  pts/12       76.93.103.195    Tue Jan 18 19:52 - 19:52  (00:00)    
+<pre><code>## huazhou  pts/10       149.142.103.91   Tue Jan 18 22:03 - 22:03  (00:00)    
+## huazhou  pts/12       76.93.103.195    Tue Jan 18 19:52 - 19:52  (00:00)    
 ## huazhou  pts/11       76.93.103.195    Tue Jan 18 18:43 - 18:44  (00:00)    
 ## huazhou  pts/10       76.93.103.195    Tue Jan 18 17:35 - 17:43  (00:07)    
 ## yuyuanli pts/11       cpe-76-94-205-56 Tue Jan 18 06:55 - 06:55  (00:00)    
@@ -525,8 +527,7 @@ uptime</code></pre>
 ## yllai    pts/13       cpe-172-91-85-15 Tue Jan 18 04:47 - 04:49  (00:02)    
 ## wongj172 pts/12       cpe-172-91-87-18 Mon Jan 17 23:29 - 23:29  (00:00)    
 ## maschepp pts/6        74.213.228.243   Mon Jan 17 19:33   still logged in   
-## lillyhua pts/5        64.201.127.119   Mon Jan 17 17:54 - 17:56  (00:01)    
-## lillyhua pts/5        64.201.127.119   Mon Jan 17 17:47 - 17:47  (00:00)</code></pre>
+## lillyhua pts/5        64.201.127.119   Mon Jan 17 17:54 - 17:56  (00:01)</code></pre>
 <ul>
 <li><code>who am i</code> displays information about the current terminal, such as username, console, and log-in time.</li>
 <li><code>who</code> displays the status of the users who are currently logged in.</li>
@@ -538,7 +539,7 @@ uptime</code></pre>
 <pre><code>## consents consented confers confered presents presented prefers prefered</code></pre>
 <pre class="bash"><code>time sleep 5</code></pre>
 <pre><code>## 
-## real 0m5.001s
+## real 0m5.002s
 ## user 0m0.000s
 ## sys  0m0.001s</code></pre>
 <ul>
