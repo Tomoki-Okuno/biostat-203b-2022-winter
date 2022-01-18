@@ -128,7 +128,7 @@ How many unique patients (identified by `subject_id`) are in this data file?
     ```{bash, eval=FALSE}
     wget -nc http://www.gutenberg.org/cache/epub/42671/pg42671.txt
     ```
-**Done.*＊
+**Done.**
 
     Explain what `wget -nc` does.  
     **`wget` is a command that not only downloads source code and binaries, but also allows you to retrieve an entire website or a specific hierarchy at once. `-nc` option indicates that a file is not retrieved again if the file has already been downloaded.**
@@ -173,7 +173,7 @@ How many unique patients (identified by `subject_id`) are in this data file?
 Explain the output.  
 **The output is the print from the 16th line to the 20th line in `pg42671.txt`**. 
 Explain the meaning of `"$1"`, `"$2"`, and `"$3"` in this shell script.  
-The following code gives the same output:**
+**The following code gives the same output:**
     ```{bash eval=F}
     head -20 pg42671.txt | tail -5
     ```

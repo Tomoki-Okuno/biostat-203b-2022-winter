@@ -366,7 +366,7 @@ awk -F&quot;,&quot; &#39;NR == 1 {print $12}; NR &gt; 1 {print $12 | &quot;sort 
 <ol style="list-style-type: decimal">
 <li><p>You and your friend just have finished reading <em>Pride and Prejudice</em> by Jane Austen. Among the four main characters in the book, Elizabeth, Jane, Lydia, and Darcy, your friend thinks that Darcy was the most mentioned. You, however, are certain it was Elizabeth. Obtain the full text of the novel from <a href="http://www.gutenberg.org/cache/epub/42671/pg42671.txt" class="uri">http://www.gutenberg.org/cache/epub/42671/pg42671.txt</a> and save to your local folder.</p>
 <pre class="bash"><code>wget -nc http://www.gutenberg.org/cache/epub/42671/pg42671.txt</code></pre>
-<p>**Done.*＊</p>
+<p><strong>Done.</strong></p>
 <p>Explain what <code>wget -nc</code> does.<br />
 <strong><code>wget</code> is a command that not only downloads source code and binaries, but also allows you to retrieve an entire website or a specific hierarchy at once. <code>-nc</code> option indicates that a file is not retrieved again if the file has already been downloaded.</strong></p>
 <p>Complete the following loop to tabulate the number of times each of the four characters is mentioned using Linux commands.<br />
@@ -412,7 +412,7 @@ head -n &quot;$2&quot; &quot;$1&quot; | tail -n &quot;$3&quot;</code></pre>
 ## </code></pre>
 <p>Explain the output.<br />
 <strong>The output is the print from the 16th line to the 20th line in <code>pg42671.txt</code></strong>. Explain the meaning of <code>&quot;$1&quot;</code>, <code>&quot;$2&quot;</code>, and <code>&quot;$3&quot;</code> in this shell script.<br />
-The following code gives the same output:**</p>
+<strong>The following code gives the same output:</strong></p>
 <pre class="bash"><code>head -20 pg42671.txt | tail -5</code></pre>
 <p><strong>which implies that <code>&quot;$1&quot;</code>=<code>pg42671.txt</code>, <code>&quot;$2&quot;</code>=<code>20</code>, and <code>&quot;$3&quot;</code>=<code>5</code>, that is, the column numbers next to <code>middle.sh</code> in the second line of the shell script.</strong></p>
 <p>Why do we need the first line of the shell script?<br />
@@ -478,7 +478,7 @@ date</code></pre>
 ## 
 ## 
 ## 
-## Sun Jan 16 03:25:16 UTC 2022</code></pre>
+## Tue Jan 18 01:06:51 UTC 2022</code></pre>
 <ul>
 <li><code>cal</code> is a command to display the calendar for the current month, but you can also specify the year (e.g.,<code>cal 2021</code>) or the year and month (e.g., <code>cal 9 1752</code>) to display.<br />
 Note that, for <code>cal 9 1752</code>, since the British Empire switched from the Julian calendar to the Gregorian calendar, <strong>there are no records from September 3 to 13 for 1752</strong>, which is reflected in the command.</li>
@@ -491,7 +491,7 @@ uptime</code></pre>
 <pre><code>## biostat-203b-teaching-server
 ## x86_64
 ## Linux biostat-203b-teaching-server 3.10.0-1160.49.1.el7.x86_64 #1 SMP Tue Nov 30 15:51:32 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
-##  03:25:16 up 13 days,  2:58,  3 users,  load average: 0.27, 0.10, 0.06</code></pre>
+##  01:06:51 up 15 days, 40 min,  3 users,  load average: 1.09, 0.60, 0.32</code></pre>
 <ul>
 <li><code>hostname</code> displays the hostname of the server you are currently logged in.</li>
 <li><code>arch</code> displays the architecture (hardware name) of the Linux machine you are using.</li>
@@ -504,26 +504,26 @@ uptime</code></pre>
 <pre class="bash"><code>who</code></pre>
 <pre><code>## tomokiokuno0528 pts/1        2022-01-11 01:13 (42.166.94.34.bc.googleusercontent.com)
 ## tomokiokuno0528 pts/3        2022-01-10 23:43 (42.166.94.34.bc.googleusercontent.com)
-## rozeta   pts/8        2022-01-16 00:13 (cpe-172-117-56-210.socal.res.rr.com)</code></pre>
+## maschepps pts/6        2022-01-17 19:33 (74.213.228.243)</code></pre>
 <pre class="bash"><code>w</code></pre>
-<pre><code>##  03:25:17 up 13 days,  2:58,  3 users,  load average: 0.27, 0.10, 0.06
+<pre><code>##  01:06:51 up 15 days, 40 min,  3 users,  load average: 1.09, 0.60, 0.32
 ## USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
-## tomokiok pts/1    42.166.94.34.bc. Tue01    5days  0.01s  0.01s -bash
-## tomokiok pts/3    42.166.94.34.bc. Mon23    5days  0.64s  0.46s ssh -i /home/tomokiokuno0528/.ssh/id_rsa tomokiokuno0528@server.ucla-biostat-203b.com
-## rozeta   pts/8    cpe-172-117-56-2 00:13    3:09m  0.02s  0.02s -bash</code></pre>
+## tomokiok pts/1    42.166.94.34.bc. 11Jan22  6days  0.01s  0.01s -bash
+## tomokiok pts/3    42.166.94.34.bc. 10Jan22  6days  0.81s  0.63s ssh -i /home/tomokiokuno0528/.ssh/id_rsa tomokiokuno0528@server.ucla-biostat-203b.com
+## maschepp pts/6    74.213.228.243   19:33    5:23m  0.03s  0.03s -bash</code></pre>
 <pre class="bash"><code>id</code></pre>
 <pre><code>## uid=1025(tomokiokuno0528) gid=1027(tomokiokuno0528) groups=1027(tomokiokuno0528) context=system_u:system_r:initrc_t:s0</code></pre>
 <pre class="bash"><code>last | head</code></pre>
-<pre><code>## rozeta   pts/8        cpe-172-117-56-2 Sun Jan 16 00:13   still logged in   
-## yllai    pts/11       cpe-172-91-85-15 Fri Jan 14 01:57 - 01:58  (00:01)    
-## huazhou  pts/11       149.142.103.91   Fri Jan 14 01:56 - 01:57  (00:00)    
-## yllai    pts/11       cpe-172-91-85-15 Fri Jan 14 01:54 - 01:56  (00:02)    
-## seamusga pts/11       c-73-63-234-195. Fri Jan 14 01:13 - 01:36  (00:23)    
-## yllai    pts/11       cpe-172-91-85-15 Fri Jan 14 01:01 - 01:04  (00:02)    
-## maschepp pts/7        74.213.228.243   Fri Jan 14 00:51 - 00:51  (00:00)    
-## lillyhua pts/17       108.53.250.47    Thu Jan 13 23:27 - 23:27  (00:00)    
-## seamusga pts/12       c-73-63-234-195. Thu Jan 13 22:57 - 23:21  (00:23)    
-## seamusga pts/12       c-73-63-234-195. Thu Jan 13 22:54 - 22:55  (00:00)</code></pre>
+<pre><code>## wongj172 pts/12       cpe-172-91-87-18 Mon Jan 17 23:29 - 23:29  (00:00)    
+## maschepp pts/6        74.213.228.243   Mon Jan 17 19:33   still logged in   
+## lillyhua pts/5        64.201.127.119   Mon Jan 17 17:54 - 17:56  (00:01)    
+## lillyhua pts/5        64.201.127.119   Mon Jan 17 17:47 - 17:47  (00:00)    
+## lillyhua pts/5        64.201.127.119   Mon Jan 17 17:42 - 17:42  (00:00)    
+## lillyhua pts/5        64.201.127.119   Mon Jan 17 17:37 - 17:39  (00:02)    
+## lillyhua pts/5        64.201.127.119   Mon Jan 17 17:20 - 17:23  (00:03)    
+## wongj172 pts/0        cpe-172-91-87-18 Mon Jan 17 09:32 - 09:36  (00:03)    
+## wongj172 pts/0        cpe-172-91-87-18 Mon Jan 17 09:30 - 09:30  (00:00)    
+## wongj172 pts/0        cpe-172-91-87-18 Mon Jan 17 09:12 - 09:19  (00:07)</code></pre>
 <ul>
 <li><code>who am i</code> displays information about the current terminal, such as username, console, and log-in time.</li>
 <li><code>who</code> displays the status of the users who are currently logged in.</li>
@@ -536,7 +536,7 @@ uptime</code></pre>
 <pre class="bash"><code>time sleep 5</code></pre>
 <pre><code>## 
 ## real 0m5.001s
-## user 0m0.000s
+## user 0m0.001s
 ## sys  0m0.001s</code></pre>
 <ul>
 <li><code>echo {con,pre}{sent,fer}{s,ed}</code> displays all texts formed by <span class="math inline">\(2^3=8\)</span> combinations.</li>
