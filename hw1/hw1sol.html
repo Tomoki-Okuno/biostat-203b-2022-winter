@@ -203,7 +203,7 @@ pre code {
 <li><p>Apply for the <a href="https://education.github.com/pack">Student Developer Pack</a> at GitHub using your UCLA email. You’ll get GitHub Pro account for free (unlimited public and private repositories).<br />
 <strong>Done.</strong></p></li>
 <li><p>Create a private repository <code>biostat-203b-2022-winter</code> and add <code>Hua-Zhou</code> and <code>maschepps</code> as your collaborators with write permission.<br />
-<strong>Done and sure.</strong></p></li>
+<strong>Done.</strong></p></li>
 <li><p>Top directories of the repository should be <code>hw1</code>, <code>hw2</code>, … Maintain two branches <code>main</code> and <code>develop</code>. The <code>develop</code> branch will be your main playground, the place where you develop solution (code) to homework problems and write up report. The <code>main</code> branch will be your presentation area. Submit your homework files (R markdown file <code>Rmd</code>, <code>html</code> file converted from R markdown, all code and extra data sets to reproduce results) in <code>main</code> branch.<br />
 <strong>Done.</strong></p></li>
 <li><p>After each homework due date, teaching assistant and instructor will check out your main branch for grading. Tag each of your homework submissions with tag names <code>hw1</code>, <code>hw2</code>, … Tagging time will be used as your submission time. That means if you tag your <code>hw1</code> submission after deadline, penalty points will be deducted for late submission.<br />
@@ -215,10 +215,11 @@ pre code {
 <div id="q2.-data-ethics-training" class="section level2">
 <h2>Q2. Data ethics training</h2>
 <p>This exercise (and later in this course) uses the <a href="https://mimic-iv.mit.edu">MIMIC-IV data</a>, a freely accessible critical care database developed by the MIT Lab for Computational Physiology. Follow the instructions at <a href="https://mimic.mit.edu/docs/gettingstarted/" class="uri">https://mimic.mit.edu/docs/gettingstarted/</a> to (1) complete the CITI <code>Data or Specimens Only Research</code> course and (2) obtain the PhysioNet credential for using the MIMIC-IV data. Display the verification links to your completion report and completion certificate here. (Hint: The CITI training takes a couple hours and the PhysioNet credentialing takes a couple days; do not leave it to the last minute.)</p>
+<p><strong>Solution:</strong></p>
 <ul>
-<li><p><strong>My completion report</strong>:<br />
+<li><p>My completion report<br />
 <a href="https://www.citiprogram.org/verify/?kf7337c50-ab63-4a0b-b730-f94965ea93e0-46526237" class="uri">https://www.citiprogram.org/verify/?kf7337c50-ab63-4a0b-b730-f94965ea93e0-46526237</a></p></li>
-<li><p><strong>My completion certificate</strong>:<br />
+<li><p>My completion certificate<br />
 <a href="https://www.citiprogram.org/verify/?w5ed2f46d-5069-4c33-ad06-a8e12eeb07c0-46526237" class="uri">https://www.citiprogram.org/verify/?w5ed2f46d-5069-4c33-ad06-a8e12eeb07c0-46526237</a></p></li>
 </ul>
 </div>
@@ -237,7 +238,8 @@ pre code {
 <p>Please, do not put these data files into Git; they are big. Do not copy them into your directory. Do not decompress the gz data files. These create unnecessary big files on storage and are not big data friendly practices. Just read from the data folder /mnt/mimiciv/1.0 directly in following exercises.<br />
 <strong>Sure.</strong></p>
 <p>Use Bash commands to answer following questions.</p></li>
-<li><p>Display the contents in the folders <code>core</code>, <code>hosp</code>, <code>icu</code>.</p>
+<li><p>Display the contents in the folders <code>core</code>, <code>hosp</code>, <code>icu</code>.<br />
+<strong>Solution:</strong></p>
 <pre class="bash"><code>ls -l /mnt/mimiciv/1.0/core/
 ls -l /mnt/mimiciv/1.0/hosp/
 ls -l /mnt/mimiciv/1.0/icu/</code></pre>
@@ -275,25 +277,23 @@ ls -l /mnt/mimiciv/1.0/icu/</code></pre>
 ## -rw-r--r--. 1 root root   37095672 Jan  4 21:52 outputevents.csv.gz
 ## -rw-r--r--. 1 root root   20567368 Jan  4 21:52 procedureevents.csv.gz</code></pre>
 <p>Why are these data files distributed as <code>.csv.gz</code> files instead of <code>.csv</code> (comma separated values) files? Read the page <a href="https://mimic.mit.edu/docs/iv/" class="uri">https://mimic.mit.edu/docs/iv/</a> to understand what’s in each folder.</p>
-<p><strong><code>.csv.gz</code> files are a compressed form of <code>.csv</code> files. Compressing a large file can reduce the file size, allowing us to store more files on a hard drive or a web server and transmit them more speedy over the internet than <code>.csv</code> files.</strong></p></li>
+<p><strong>Solution:</strong> <code>.csv.gz</code> files are a compressed form of <code>.csv</code> files. Compressing a large file can reduce the file size, allowing us to store more files on storage and transmit them more speedy over the internet than <code>.csv</code> files.</p></li>
 <li><p>Briefly describe what bash commands <code>zcat</code>, <code>zless</code>, <code>zmore</code>, and <code>zgrep</code> do.</p>
-<p><strong>What these five commands have in common is to display a compressed file without decompressing it.<br />
-<code>zcat</code>, <code>zless</code>, <code>zmore</code>, and <code>zgrep</code> can perform the equivalent of <code>cat</code>, <code>less</code>, <code>more</code>, and <code>grep</code>, respectively.</strong></p></li>
+<p><strong>Solution:</strong> What these five commands have in common is to display a compressed file without decompressing it.<br />
+<code>zcat</code>, <code>zless</code>, <code>zmore</code>, and <code>zgrep</code> can perform the equivalent of <code>cat</code>, <code>less</code>, <code>more</code>, and <code>grep</code>, respectively.</p></li>
 <li><p>What’s the output of following bash script?</p>
 <pre class="bash"><code>for datafile in /mnt/mimiciv/1.0/core/*.gz
   do
     ls -l $datafile
   done</code></pre>
-<pre><code>## -rw-r--r--. 1 root root 17208966 Jan  4 21:48 /mnt/mimiciv/1.0/core/admissions.csv.gz
-## -rw-r--r--. 1 root root 2955582 Jan  4 21:48 /mnt/mimiciv/1.0/core/patients.csv.gz
-## -rw-r--r--. 1 root root 53014503 Jan  4 21:48 /mnt/mimiciv/1.0/core/transfers.csv.gz</code></pre>
-<p><strong>By the way, this following code gives almost the same output.</strong></p>
+<p><strong>Comment:</strong> By the way, the following code gives almost the same output.</p>
 <pre class="bash"><code>ls -l /mnt/mimiciv/1.0/core/ | grep &#39;.gz&#39;</code></pre>
 <pre><code>## -rw-r--r--. 1 root root 17208966 Jan  4 21:48 admissions.csv.gz
 ## -rw-r--r--. 1 root root  2955582 Jan  4 21:48 patients.csv.gz
 ## -rw-r--r--. 1 root root 53014503 Jan  4 21:48 transfers.csv.gz</code></pre>
-<p><strong>This output of the script is a list of all the compressed (<code>.gz</code>) files in a long format.</strong></p>
-<p>Display the number of lines in each data file using a similar loop.</p>
+<p><strong>Solution:</strong> This output of the script is a list of all the compressed (<code>.gz</code>) files in a long format.</p>
+<p>Display the number of lines in each data file using a similar loop.<br />
+<strong>Solution:</strong></p>
 <pre class="bash"><code>for datafile in /mnt/mimiciv/1.0/core/*.gz
   do
     wc -l $datafile
@@ -301,23 +301,27 @@ ls -l /mnt/mimiciv/1.0/icu/</code></pre>
 <pre><code>## 66155 /mnt/mimiciv/1.0/core/admissions.csv.gz
 ## 8712 /mnt/mimiciv/1.0/core/patients.csv.gz
 ## 197787 /mnt/mimiciv/1.0/core/transfers.csv.gz</code></pre></li>
-<li><p>Display the first few lines of <code>admissions.csv.gz</code>.</p>
-<pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | head -3</code></pre>
+<li><p>Display the first few lines of <code>admissions.csv.gz</code>.<br />
+<strong>Solution:</strong></p>
+<pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | head -4</code></pre>
 <pre><code>## subject_id,hadm_id,admittime,dischtime,deathtime,admission_type,admission_location,discharge_location,insurance,language,marital_status,ethnicity,edregtime,edouttime,hospital_expire_flag
 ## 14679932,21038362,2139-09-26 14:16:00,2139-09-28 11:30:00,,ELECTIVE,,HOME,Other,ENGLISH,SINGLE,UNKNOWN,,,0
-## 15585972,24941086,2123-10-07 23:56:00,2123-10-12 11:22:00,,ELECTIVE,,HOME,Other,ENGLISH,,WHITE,,,0</code></pre>
-<p>How many rows are in this data file?</p>
+## 15585972,24941086,2123-10-07 23:56:00,2123-10-12 11:22:00,,ELECTIVE,,HOME,Other,ENGLISH,,WHITE,,,0
+## 11989120,21965160,2147-01-14 09:00:00,2147-01-17 14:25:00,,ELECTIVE,,HOME,Other,ENGLISH,,UNKNOWN,,,0</code></pre>
+<p>How many rows are in this data file?<br />
+<strong>Solution:</strong> The following code ignores the 1st line and gives the answer.</p>
 <pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | tail -n +2 | wc -l</code></pre>
 <pre><code>## 523740</code></pre>
 <p>How many unique patients (identified by <code>subject_id</code>) are in this data file?<br />
-<strong>I offer two answers.</strong></p>
+<strong>Solution:</strong> I offer two answers as follows.</p>
 <pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
   tail -n +2 | sort | uniq -f 0 -w 8 | wc -l
 zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
   awk -F &quot;,&quot; &#39;NR &gt; 1 {print $1 | &quot;sort | uniq&quot;}&#39; | wc -l</code></pre>
 <pre><code>## 256878
 ## 256878</code></pre></li>
-<li><p>What are the possible values taken by each of the variable <code>admission_type</code>, <code>admission_location</code>, <code>insurance</code>, and <code>ethnicity</code>? Also report the count for each unique value of these variables.</p>
+<li><p>What are the possible values taken by each of the variable <code>admission_type</code>, <code>admission_location</code>, <code>insurance</code>, and <code>ethnicity</code>? Also report the count for each unique value of these variables.<br />
+<strong>Solution:</strong> Here are the codes and the answers.</p>
 <pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
   awk -F &quot;,&quot; &#39;NR == 1 {print $6}; NR &gt; 1 {print $6 | &quot;sort | uniq -c&quot;}&#39;</code></pre>
 <pre><code>## admission_type
@@ -371,15 +375,14 @@ zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
 <pre class="bash"><code>wget -nc http://www.gutenberg.org/cache/epub/42671/pg42671.txt</code></pre>
 <p><strong>Done.</strong></p>
 <p>Explain what <code>wget -nc</code> does.<br />
-<strong><code>wget</code> is a command that not only downloads source code and binaries, but also allows you to retrieve an entire website or a specific hierarchy at once. <code>-nc</code> option indicates that a file is not retrieved again if the file has already been downloaded.</strong></p>
+<strong>Solution:</strong> <code>wget</code> is a command that not only downloads source code and binaries, but also allows you to retrieve an entire website or a specific hierarchy at once. <code>-nc</code> option indicates that a file is not retrieved again if the file has already been downloaded.</p>
 <p>Complete the following loop to tabulate the number of times each of the four characters is mentioned using Linux commands.<br />
-<strong>Using <code>-o</code> option, it is possible to count the words containing each name instead of just counting the lines.</strong></p>
+<strong>Solution:</strong> Using <code>-o</code> option, it is possible to count the words containing each name instead of just counting the lines shown below. Moreover, If using <code>-i</code> option to ignore the difference between uppercase and lowercase letters, I got one more time for Lydia and Darcy as follows.</p>
 <pre class="bash"><code># wget -nc http://www.gutenberg.org/cache/epub/42671/pg42671.txt
 for char in Elizabeth Jane Lydia Darcy
 do
   echo $char:
   cat pg42671.txt | grep -o $char | wc -l
-  # ignore uppercase vs. lowercase.
   cat pg42671.txt | grep -o -i $char | wc -l 
 done</code></pre>
 <pre><code>## Elizabeth:
@@ -398,13 +401,13 @@ done</code></pre>
 <pre class="bash"><code>echo &#39;hello, world&#39; &gt; test1.txt</code></pre>
 <p>and</p>
 <pre class="bash"><code>echo &#39;hello, world&#39; &gt;&gt; test2.txt</code></pre>
-<p><strong>The difference between <code>&gt;</code> and <code>&gt;&gt;</code> is that <code>&gt;</code> opens a file in overwrite mode, while <code>&gt;&gt;</code> opens a file in append mode.</strong></p></li>
+<p><strong>Solution:</strong> The difference between them is that <code>&gt;</code> opens a file in overwrite mode, while <code>&gt;&gt;</code> opens a file in append mode. In other words, the first command will always input only one line of <code>hello world</code> no matter how many times it is run, while the second command increases in line the more times you run it.</p></li>
 <li><p>Using your favorite text editor (e.g., <code>vi</code>), type the following and save the file as <code>middle.sh</code>:</p>
 <pre class="bash"><code>#!/bin/sh
 # Select lines from the middle of a file.
 # Usage: bash middle.sh filename end_line num_lines
 head -n &quot;$2&quot; &quot;$1&quot; | tail -n &quot;$3&quot;</code></pre>
-<p><strong>Done.</strong></p>
+<p><strong>Solution:</strong> I used <code>vi</code> and put the file into Git.</p>
 <p>Using <code>chmod</code> make the file executable by the owner, and run</p>
 <pre class="bash"><code>chmod 700 ./middle.sh
 ./middle.sh pg42671.txt 20 5</code></pre>
@@ -413,14 +416,15 @@ head -n &quot;$2&quot; &quot;$1&quot; | tail -n &quot;$3&quot;</code></pre>
 ## 
 ## Editor: R. W. (Robert William) Chapman
 ## </code></pre>
-<p>Explain the output.<br />
-<strong>The output is the print from the 16th line to the 20th line in <code>pg42671.txt</code></strong>.<br />
+<p><strong>Solution:</strong> I added a command as above and ran it.<br />
+Explain the output.<br />
+<strong>Solution:</strong> The output is the print from the 16th line to the 20th line in <code>pg42671.txt</code>.<br />
 Explain the meaning of <code>&quot;$1&quot;</code>, <code>&quot;$2&quot;</code>, and <code>&quot;$3&quot;</code> in this shell script.<br />
-<strong>The following code gives the same output:</strong></p>
+<strong>Solution:</strong> The following code gives the same output:</p>
 <pre class="bash"><code>head -20 pg42671.txt | tail -5</code></pre>
-<p><strong>which implies that <code>&quot;$1&quot;</code>=<code>pg42671.txt</code>, <code>&quot;$2&quot;</code>=<code>20</code>, and <code>&quot;$3&quot;</code>=<code>5</code>, that is, the column numbers next to <code>middle.sh</code> in the second line of the shell script.</strong></p>
+<p>which implies that <code>&quot;$1&quot;</code>=<code>pg42671.txt</code>, <code>&quot;$2&quot;</code>=<code>20</code>, and <code>&quot;$3&quot;</code>=<code>5</code>, that is, the column numbers next to <code>middle.sh</code> in the second line of the shell script.</p>
 <p>Why do we need the first line of the shell script?<br />
-<strong>To identify the shell to execute.</strong></p></li>
+<strong>Solution:</strong> To identify the shell (bash/csh/tcsh/zsh, etc) to execute.</p></li>
 </ol>
 </div>
 <div id="q5.-more-fun-with-linux" class="section level2">
@@ -482,7 +486,8 @@ date</code></pre>
 ## 
 ## 
 ## 
-## Tue Jan 18 22:05:49 UTC 2022</code></pre>
+## Wed Jan 19 17:45:07 UTC 2022</code></pre>
+<p><strong>Solution:</strong></p>
 <ul>
 <li><code>cal</code> is a command to display the calendar for the current month, but you can also specify the year (e.g.,<code>cal 2021</code>) or the year and month (e.g., <code>cal 9 1752</code>) to display.<br />
 Note that, for <code>cal 9 1752</code>, since the British Empire switched from the Julian calendar to the Gregorian calendar, <strong>there are no records from September 3 to 13 for 1752</strong>, which is reflected in the command.</li>
@@ -495,7 +500,7 @@ uptime</code></pre>
 <pre><code>## biostat-203b-teaching-server
 ## x86_64
 ## Linux biostat-203b-teaching-server 3.10.0-1160.49.1.el7.x86_64 #1 SMP Tue Nov 30 15:51:32 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
-##  22:05:49 up 15 days, 21:39,  3 users,  load average: 0.90, 0.55, 0.35</code></pre>
+##  17:45:07 up 16 days, 17:18,  3 users,  load average: 0.47, 0.15, 0.13</code></pre>
 <ul>
 <li><code>hostname</code> displays the hostname of the server you are currently logged in.</li>
 <li><code>arch</code> displays the architecture (hardware name) of the Linux machine you are using.</li>
@@ -504,30 +509,30 @@ uptime</code></pre>
 </ul>
 <pre class="bash"><code>who am i
 # Output on my local terminal below
-# tomokiokuno ttys000  Jan 10 15:27 </code></pre>
+## tomokiokuno ttys000  Jan 10 15:27 </code></pre>
 <pre class="bash"><code>who</code></pre>
 <pre><code>## tomokiokuno0528 pts/1        2022-01-11 01:13 (42.166.94.34.bc.googleusercontent.com)
 ## tomokiokuno0528 pts/3        2022-01-10 23:43 (42.166.94.34.bc.googleusercontent.com)
 ## maschepps pts/6        2022-01-17 19:33 (74.213.228.243)</code></pre>
 <pre class="bash"><code>w</code></pre>
-<pre><code>##  22:05:49 up 15 days, 21:39,  3 users,  load average: 0.90, 0.55, 0.35
+<pre><code>##  17:45:07 up 16 days, 17:18,  3 users,  load average: 0.47, 0.15, 0.13
 ## USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
-## tomokiok pts/1    42.166.94.34.bc. 11Jan22  7days  0.01s  0.01s -bash
-## tomokiok pts/3    42.166.94.34.bc. 10Jan22  7days  0.89s  0.71s ssh -i /home/tomokiokuno0528/.ssh/id_rsa tomokiokuno0528@server.ucla-biostat-203b.com
-## maschepp pts/6    74.213.228.243   Mon19   26:22m  0.03s  0.03s -bash</code></pre>
+## tomokiok pts/1    42.166.94.34.bc. 11Jan22  8days  0.01s  0.01s -bash
+## tomokiok pts/3    42.166.94.34.bc. 10Jan22  8days  0.97s  0.79s ssh -i /home/tomokiokuno0528/.ssh/id_rsa tomokiokuno0528@server.ucla-biostat-203b.com
+## maschepp pts/6    74.213.228.243   Mon19   46:01m  0.03s  0.03s -bash</code></pre>
 <pre class="bash"><code>id</code></pre>
 <pre><code>## uid=1025(tomokiokuno0528) gid=1027(tomokiokuno0528) groups=1027(tomokiokuno0528) context=system_u:system_r:initrc_t:s0</code></pre>
 <pre class="bash"><code>last | head</code></pre>
-<pre><code>## huazhou  pts/10       149.142.103.91   Tue Jan 18 22:03 - 22:03  (00:00)    
-## huazhou  pts/12       76.93.103.195    Tue Jan 18 19:52 - 19:52  (00:00)    
-## huazhou  pts/11       76.93.103.195    Tue Jan 18 18:43 - 18:44  (00:00)    
-## huazhou  pts/10       76.93.103.195    Tue Jan 18 17:35 - 17:43  (00:07)    
-## yuyuanli pts/11       cpe-76-94-205-56 Tue Jan 18 06:55 - 06:55  (00:00)    
-## yllai    pts/16       cpe-172-91-85-15 Tue Jan 18 05:29 - 06:15  (00:46)    
-## yllai    pts/13       cpe-172-91-85-15 Tue Jan 18 04:47 - 04:49  (00:02)    
-## wongj172 pts/12       cpe-172-91-87-18 Mon Jan 17 23:29 - 23:29  (00:00)    
-## maschepp pts/6        74.213.228.243   Mon Jan 17 19:33   still logged in   
-## lillyhua pts/5        64.201.127.119   Mon Jan 17 17:54 - 17:56  (00:01)</code></pre>
+<pre><code>## huazhou  pts/30       149.142.103.91   Wed Jan 19 02:23 - 02:32  (00:09)    
+## lillyhua pts/20       64.201.127.119   Wed Jan 19 01:13 - 03:56  (02:43)    
+## lillyhua pts/20       64.201.127.119   Wed Jan 19 01:10 - 01:12  (00:01)    
+## lillyhua pts/20       64.201.127.119   Wed Jan 19 00:24 - 01:10  (00:46)    
+## sharonfe pts/19       38.15.211.52     Wed Jan 19 00:20 - 00:52  (00:31)    
+## yuyuanli pts/18       149.142.103.176  Wed Jan 19 00:20 - 02:01  (01:41)    
+## inclassd pts/17       149.142.103.176  Wed Jan 19 00:20 - 02:32  (02:11)    
+## jiahaoti pts/16       104-54-32-28.lig Wed Jan 19 00:20 - 02:00  (01:40)    
+## lillyhua pts/14       64.201.127.119   Wed Jan 19 00:10 - 00:11  (00:00)    
+## lillyhua pts/10       64.201.127.119   Tue Jan 18 22:31 - 22:31  (00:00)</code></pre>
 <ul>
 <li><code>who am i</code> displays information about the current terminal, such as username, console, and log-in time.</li>
 <li><code>who</code> displays the status of the users who are currently logged in.</li>
@@ -540,24 +545,24 @@ uptime</code></pre>
 <pre class="bash"><code>time sleep 5</code></pre>
 <pre><code>## 
 ## real 0m5.002s
-## user 0m0.000s
-## sys  0m0.001s</code></pre>
+## user 0m0.001s
+## sys  0m0.002s</code></pre>
 <ul>
 <li><code>echo {con,pre}{sent,fer}{s,ed}</code> displays all texts formed by <span class="math inline">\(2^3=8\)</span> combinations.</li>
 <li><code>sleep 5</code> stops the shell for five seconds and <code>time</code> is a command to measure execute time of a command. Hence,<code>time sleep 5</code> is a command to check that the shell has been stopped for five seconds.</li>
 </ul>
 <pre class="bash"><code>history | tail
 # Outputs on my local terminal below
-# 503  arch
-# 504  uname -a
-# 505  uptime
-# 506  who am i
-# 507  who
-# 508  w
-# 509  id
-# 510  last | head
-# 511  time sleep 5
-# 512  history | tail</code></pre>
+## 503  arch
+## 504  uname -a
+## 505  uptime
+## 506  who am i
+## 507  who
+## 508  w
+## 509  id
+## 510  last | head
+## 511  time sleep 5
+## 512  history | tail</code></pre>
 <ul>
 <li><code>history | tail</code> displays the last 10 commands in order from oldest to newest.</li>
 </ul></li>
