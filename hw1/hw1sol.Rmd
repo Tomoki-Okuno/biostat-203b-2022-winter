@@ -23,7 +23,7 @@ sessionInfo()
 **Done.**
 
 3. Top directories of the repository should be `hw1`, `hw2`, ... Maintain two branches `main` and `develop`. The `develop` branch will be your main playground, the place where you develop solution (code) to homework problems and write up report. The `main` branch will be your presentation area. Submit your homework files (R markdown file `Rmd`, `html` file converted from R markdown, all code and extra data sets to reproduce results) in `main` branch.  
-**Done and Understood.**
+**Done and understood.**
 
 4. After each homework due date, teaching assistant and instructor will check out your main branch for grading. Tag each of your homework submissions with tag names `hw1`, `hw2`, ... Tagging time will be used as your submission time. That means if you tag your `hw1` submission after deadline, penalty points will be deducted for late submission.  
 **Done.**
@@ -231,7 +231,7 @@ which implies that `"$1"`=`pg42671.txt`, `"$2"`=`20`, and `"$3"`=`5`, that is, t
     ```{bash}
     last | head
     ```
-    - `who am i` displays information about the current terminal, such as username, console, and log-in time.
+    - `who am i` displays information about the current terminal, such as username, console, and log-in time. However, the output is not displayed on a teaching server maybe because the process is ongoing.
     - `who` displays the status of the users who are currently logged in.
     - `w` displays the processes running by the logged-in user and the CPU time used at the same time.
     - `id` displays identification information such as user ID, user name, group ID.

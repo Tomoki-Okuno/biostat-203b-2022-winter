@@ -205,7 +205,7 @@ pre code {
 <li><p>Create a private repository <code>biostat-203b-2022-winter</code> and add <code>Hua-Zhou</code> and <code>maschepps</code> as your collaborators with write permission.<br />
 <strong>Done.</strong></p></li>
 <li><p>Top directories of the repository should be <code>hw1</code>, <code>hw2</code>, … Maintain two branches <code>main</code> and <code>develop</code>. The <code>develop</code> branch will be your main playground, the place where you develop solution (code) to homework problems and write up report. The <code>main</code> branch will be your presentation area. Submit your homework files (R markdown file <code>Rmd</code>, <code>html</code> file converted from R markdown, all code and extra data sets to reproduce results) in <code>main</code> branch.<br />
-<strong>Done and Understood.</strong></p></li>
+<strong>Done and understood.</strong></p></li>
 <li><p>After each homework due date, teaching assistant and instructor will check out your main branch for grading. Tag each of your homework submissions with tag names <code>hw1</code>, <code>hw2</code>, … Tagging time will be used as your submission time. That means if you tag your <code>hw1</code> submission after deadline, penalty points will be deducted for late submission.<br />
 <strong>Done.</strong></p></li>
 <li><p>After this course, you can make this repository public and use it to demonstrate your skill sets on job market.<br />
@@ -486,7 +486,7 @@ date</code></pre>
 ## 
 ## 
 ## 
-## Thu Jan 20 19:53:28 UTC 2022</code></pre>
+## Fri Jan 21 01:13:17 UTC 2022</code></pre>
 <p><strong>Solution:</strong></p>
 <ul>
 <li><code>cal</code> is a command to display the calendar for the current month, but you can also specify the year (e.g.,<code>cal 2021</code>) or the year and month (e.g., <code>cal 9 1752</code>) to display.<br />
@@ -500,7 +500,7 @@ uptime</code></pre>
 <pre><code>## biostat-203b-teaching-server
 ## x86_64
 ## Linux biostat-203b-teaching-server 3.10.0-1160.49.1.el7.x86_64 #1 SMP Tue Nov 30 15:51:32 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
-##  19:53:28 up 17 days, 19:26,  3 users,  load average: 0.80, 0.26, 0.18</code></pre>
+##  01:13:17 up 18 days, 46 min,  9 users,  load average: 1.16, 0.59, 0.37</code></pre>
 <ul>
 <li><code>hostname</code> displays the hostname of the server you are currently logged in.</li>
 <li><code>arch</code> displays the architecture (hardware name) of the Linux machine you are using.</li>
@@ -513,28 +513,40 @@ uptime</code></pre>
 <pre class="bash"><code>who</code></pre>
 <pre><code>## tomokiokuno0528 pts/1        2022-01-11 01:13 (42.166.94.34.bc.googleusercontent.com)
 ## tomokiokuno0528 pts/3        2022-01-10 23:43 (42.166.94.34.bc.googleusercontent.com)
-## maschepps pts/6        2022-01-17 19:33 (74.213.228.243)</code></pre>
+## maschepps pts/6        2022-01-17 19:33 (74.213.228.243)
+## huazhou  pts/7        2022-01-21 01:03 (108-64-58-205.lightspeed.irvnca.sbcglobal.net)
+## ritazxcai pts/21       2022-01-21 00:31 (42.166.94.34.bc.googleusercontent.com)
+## ritazxcai pts/23       2022-01-21 00:31 (42.166.94.34.bc.googleusercontent.com)
+## ritazxcai pts/13       2022-01-21 00:30 (cpe-172-91-65-26.socal.res.rr.com)
+## ritazxcai pts/26       2022-01-21 00:43 (42.166.94.34.bc.googleusercontent.com)
+## ritazxcai pts/24       2022-01-21 00:32 (42.166.94.34.bc.googleusercontent.com)</code></pre>
 <pre class="bash"><code>w</code></pre>
-<pre><code>##  19:53:28 up 17 days, 19:26,  3 users,  load average: 0.80, 0.26, 0.18
+<pre><code>##  01:13:17 up 18 days, 46 min,  9 users,  load average: 1.16, 0.59, 0.37
 ## USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
 ## tomokiok pts/1    42.166.94.34.bc. 11Jan22  9days  0.01s  0.01s -bash
-## tomokiok pts/3    42.166.94.34.bc. 10Jan22  9days  1.09s  0.91s ssh -i /home/tomokiokuno0528/.ssh/id_rsa tomokiokuno0528@server.ucla-biostat-203b.com
-## maschepp pts/6    74.213.228.243   Mon19    3days  0.03s  0.03s -bash</code></pre>
+## tomokiok pts/3    42.166.94.34.bc. 10Jan22  9days  1.11s  0.93s ssh -i /home/tomokiokuno0528/.ssh/id_rsa tomokiokuno0528@server.ucla-biostat-203b.com
+## maschepp pts/6    74.213.228.243   Mon19    3days  0.03s  0.03s -bash
+## huazhou  pts/7    108-64-58-205.li 01:03    9:25   0.01s  0.01s -bash
+## ritazxca pts/21   42.166.94.34.bc. 00:31   30:13   0.05s  0.04s ssh -i /home/ritazxcai/.ssh/id_rsa ritazxcai@server.ucla-biostat-203b.com
+## ritazxca pts/23   42.166.94.34.bc. 00:31   30:13   0.05s  0.02s ssh -i /home/ritazxcai/.ssh/id_rsa ritazxcai@server.ucla-biostat-203b.com
+## ritazxca pts/13   cpe-172-91-65-26 00:30   30:13   0.06s  0.04s ssh -i /home/ritazxcai/.ssh/id_rsa ritazxcai@server.ucla-biostat-203b.com
+## ritazxca pts/26   42.166.94.34.bc. 00:43   30:06   0.01s  0.01s -bash
+## ritazxca pts/24   42.166.94.34.bc. 00:32   30:13   0.03s  0.02s ssh ritazxcai@server.ucla-biostat-203b.com</code></pre>
 <pre class="bash"><code>id</code></pre>
 <pre><code>## uid=1025(tomokiokuno0528) gid=1027(tomokiokuno0528) groups=1027(tomokiokuno0528) context=system_u:system_r:initrc_t:s0</code></pre>
 <pre class="bash"><code>last | head</code></pre>
-<pre><code>## blei001  pts/7        cpe-76-171-0-146 Thu Jan 20 06:38 - 06:41  (00:02)    
-## jiahaoti pts/14       104-54-32-28.lig Thu Jan 20 02:14 - 04:59  (02:44)    
-## huazhou  pts/30       149.142.103.91   Wed Jan 19 02:23 - 02:32  (00:09)    
-## lillyhua pts/20       64.201.127.119   Wed Jan 19 01:13 - 03:56  (02:43)    
-## lillyhua pts/20       64.201.127.119   Wed Jan 19 01:10 - 01:12  (00:01)    
-## lillyhua pts/20       64.201.127.119   Wed Jan 19 00:24 - 01:10  (00:46)    
-## sharonfe pts/19       38.15.211.52     Wed Jan 19 00:20 - 00:52  (00:31)    
-## yuyuanli pts/18       149.142.103.176  Wed Jan 19 00:20 - 02:01  (01:41)    
-## inclassd pts/17       149.142.103.176  Wed Jan 19 00:20 - 02:32  (02:11)    
-## jiahaoti pts/16       104-54-32-28.lig Wed Jan 19 00:20 - 02:00  (01:40)</code></pre>
+<pre><code>## huazhou  pts/7        108-64-58-205.li Fri Jan 21 01:03   still logged in   
+## ritazxca pts/26       42.166.94.34.bc. Fri Jan 21 00:43   still logged in   
+## ritazxca pts/24       42.166.94.34.bc. Fri Jan 21 00:32   still logged in   
+## ritazxca pts/23       42.166.94.34.bc. Fri Jan 21 00:31   still logged in   
+## ritazxca pts/21       42.166.94.34.bc. Fri Jan 21 00:31   still logged in   
+## ritazxca pts/13       cpe-172-91-65-26 Fri Jan 21 00:30   still logged in   
+## ritazxca pts/23       42.166.94.34.bc. Fri Jan 21 00:28 - 00:29  (00:00)    
+## ritazxca pts/21       42.166.94.34.bc. Fri Jan 21 00:27 - 00:29  (00:01)    
+## ritazxca pts/13       cpe-172-91-65-26 Fri Jan 21 00:26 - 00:29  (00:02)    
+## ritazxca pts/13       42.166.94.34.bc. Fri Jan 21 00:22 - 00:26  (00:03)</code></pre>
 <ul>
-<li><code>who am i</code> displays information about the current terminal, such as username, console, and log-in time.</li>
+<li><code>who am i</code> displays information about the current terminal, such as username, console, and log-in time. However, the output is not displayed on a teaching server maybe because the process is ongoing.</li>
 <li><code>who</code> displays the status of the users who are currently logged in.</li>
 <li><code>w</code> displays the processes running by the logged-in user and the CPU time used at the same time.</li>
 <li><code>id</code> displays identification information such as user ID, user name, group ID.</li>
