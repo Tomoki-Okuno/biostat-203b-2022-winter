@@ -23,7 +23,7 @@ sessionInfo()
 **Done.**
 
 3. Top directories of the repository should be `hw1`, `hw2`, ... Maintain two branches `main` and `develop`. The `develop` branch will be your main playground, the place where you develop solution (code) to homework problems and write up report. The `main` branch will be your presentation area. Submit your homework files (R markdown file `Rmd`, `html` file converted from R markdown, all code and extra data sets to reproduce results) in `main` branch.  
-**Done and Understood.**
+**Done and understood.**
 
 4. After each homework due date, teaching assistant and instructor will check out your main branch for grading. Tag each of your homework submissions with tag names `hw1`, `hw2`, ... Tagging time will be used as your submission time. That means if you tag your `hw1` submission after deadline, penalty points will be deducted for late submission.  
 **Done.**
@@ -54,15 +54,17 @@ Please, do not put these data files into Git; they are big. Do not copy them int
     Use Bash commands to answer following questions.
 
 2. Display the contents in the folders `core`, `hosp`, `icu`.  
-**Solution:**
+**Solution:** Here is the code to display them.
     ```{bash}
     ls -l /mnt/mimiciv/1.0/core/
     ls -l /mnt/mimiciv/1.0/hosp/
     ls -l /mnt/mimiciv/1.0/icu/
     ```
-Why are these data files distributed as `.csv.gz` files instead of `.csv` (comma separated values) files? Read the page <https://mimic.mit.edu/docs/iv/> to understand what's in each folder.
-
-    **Solution:** `.csv.gz` files are a compressed form of `.csv` files. Compressing a large file can reduce the file size, allowing us to store more files on storage and transmit them more speedy over the internet than `.csv` files.
+Why are these data files distributed as `.csv.gz` files instead of `.csv` (comma separated values) files?   
+    **Solution:** `.csv.gz` files are a compressed form of `.csv` files. Compressing a large file can reduce the file size, allowing us to store more files on storage and transmit them more speedy over the internet than `.csv` files.  
+    
+    Read the page <https://mimic.mit.edu/docs/iv/> to understand what's in each folder.  
+    **Done.**
 
 3. Briefly describe what bash commands `zcat`, `zless`, `zmore`, and `zgrep` do.
 
@@ -76,18 +78,18 @@ Why are these data files distributed as `.csv.gz` files instead of `.csv` (comma
         ls -l $datafile
       done
     ```
+**Solution:** The output is a list of all the compressed (`.gz`) files in `/mnt/mimiciv/1.0/core/` in a long format.  
 **Comment:** By the way, the following code gives almost the same output.
     ```{bash eval=T}
     ls -l /mnt/mimiciv/1.0/core/ | grep '.gz'
     ```
-**Solution:** This output of the script is a list of all the compressed (`.gz`) files in a long format.
-
-    Display the number of lines in each data file using a similar loop.  
-    **Solution:**
+Display the number of lines in each data file using a similar loop.  
+**Solution:** I used `echo` to clarify the file name and counted the number of lines as follows.
     ```{bash} 
     for datafile in /mnt/mimiciv/1.0/core/*.gz
       do
-        wc -l $datafile
+      echo $datafile
+      zcat $datafile | wc -l
       done
     ```
 
@@ -176,15 +178,17 @@ How many unique patients (identified by `subject_id`) are in this data file?
     chmod 700 ./middle.sh
     ./middle.sh pg42671.txt 20 5
     ```
-**Solution:** I added a command as above and ran it.  
-Explain the output.  
-**Solution:** The output is the print from the 16th line to the 20th line in `pg42671.txt`.  
-Explain the meaning of `"$1"`, `"$2"`, and `"$3"` in this shell script.  
+**Solution:** I added a command as above and ran it.
+
+    Explain the output.  
+**Solution:** The output is the print from the 16th line to the 20th line in `pg42671.txt`.
+
+    Explain the meaning of `"$1"`, `"$2"`, and `"$3"` in this shell script.  
 **Solution:** The following code gives the same output:
     ```{bash eval=F}
     head -20 pg42671.txt | tail -5
     ```
-which implies that `"$1"`=`pg42671.txt`, `"$2"`=`20`, and `"$3"`=`5`, that is, the column numbers next to `middle.sh` in the second line of the shell script.
+which implies that `"$1"`=`pg42671.txt`, `"$2"`=`20`, and `"$3"`=`5`, that is, the column numbers next to `./middle.sh` in the second line of the shell script.
 
     Why do we need the first line of the shell script?  
 **Solution:** To identify the shell (bash/csh/tcsh/zsh, etc) to execute.
@@ -231,7 +235,7 @@ which implies that `"$1"`=`pg42671.txt`, `"$2"`=`20`, and `"$3"`=`5`, that is, t
     ```{bash}
     last | head
     ```
-    - `who am i` displays information about the current terminal, such as username, console, and log-in time.
+    - `who am i` displays information about the current terminal, such as username, console, and log-in time. However, the output is not displayed on a teaching server maybe because the process is ongoing.
     - `who` displays the status of the users who are currently logged in.
     - `w` displays the processes running by the logged-in user and the CPU time used at the same time.
     - `id` displays identification information such as user ID, user name, group ID.
@@ -248,7 +252,7 @@ which implies that `"$1"`=`pg42671.txt`, `"$2"`=`20`, and `"$3"`=`5`, that is, t
     
     ```{bash}
     history | tail
-    # Outputs on my local terminal below
+    # Outputs on my terminal below
     ## 503  arch
     ## 504  uname -a
     ## 505  uptime
@@ -261,4 +265,3 @@ which implies that `"$1"`=`pg42671.txt`, `"$2"`=`20`, and `"$3"`=`5`, that is, t
     ## 512  history | tail
     ```
     - `history | tail` displays the last 10 commands in order from oldest to newest.
-    
