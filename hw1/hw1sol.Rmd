@@ -68,7 +68,7 @@ Why are these data files distributed as `.csv.gz` files instead of `.csv` (comma
 
 3. Briefly describe what bash commands `zcat`, `zless`, `zmore`, and `zgrep` do.
 
-    **Solution:** What these five commands have in common is to display a compressed file without decompressing it.  
+    **Solution:** What these four commands have in common is to display a compressed file without decompressing it.  
     `zcat`, `zless`, `zmore`, and `zgrep` can perform the equivalent of `cat`, `less`, `more`, and `grep`, respectively.  
     
 4. What's the output of following bash script?
@@ -104,7 +104,7 @@ How many rows are in this data file?
     zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | tail -n +2 | wc -l
     ```
 How many unique patients (identified by `subject_id`) are in this data file?  
-**Solution:** I offer two answers as follows.
+**Solution:** I offer two answers as shown below.
     ```{bash} 
     zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
       tail -n +2 | sort | uniq -f 0 -w 8 | wc -l
