@@ -321,7 +321,7 @@ ls -l /mnt/mimiciv/1.0/icu/</code></pre>
 <p>How many unique patients (identified by <code>subject_id</code>) are in this data file?<br />
 <strong>Solution:</strong> I offer two answers as shown below.</p>
 <pre class="bash"><code>zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-  tail -n +2 | sort | uniq -f 0 -w 8 | wc -l
+  awk -F &quot;,&quot; &#39;{print $1}&#39; | sort | uniq | tail -n +2 | wc -l
 zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
   awk -F &quot;,&quot; &#39;NR &gt; 1 {print $1 | &quot;sort | uniq&quot;}&#39; | wc -l</code></pre>
 <pre><code>## 256878
@@ -492,7 +492,7 @@ date</code></pre>
 ## 
 ## 
 ## 
-## Fri Jan 21 08:01:46 UTC 2022</code></pre>
+## Fri Jan 21 23:21:58 UTC 2022</code></pre>
 <p><strong>Solution:</strong></p>
 <ul>
 <li><code>cal</code> is a command to display the calendar for the current month, but you can also specify the year (e.g.,<code>cal 2021</code>) or the year and month (e.g., <code>cal 9 1752</code>) to display.<br />
@@ -506,11 +506,7 @@ uptime</code></pre>
 <pre><code>## biostat-203b-teaching-server
 ## x86_64
 ## Linux biostat-203b-teaching-server 3.10.0-1160.49.1.el7.x86_64 #1 SMP Tue Nov 30 15:51:32 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
-<<<<<<< HEAD
-##  08:01:46 up 18 days,  7:35,  4 users,  load average: 1.27, 0.70, 0.56</code></pre>
-=======
-##  06:14:20 up 18 days,  5:47,  5 users,  load average: 0.99, 0.87, 0.63</code></pre>
->>>>>>> 94727ce8e0c35a2f047c24787563fa43632625af
+##  23:21:58 up 18 days, 22:55,  3 users,  load average: 0.68, 0.66, 0.61</code></pre>
 <ul>
 <li><code>hostname</code> displays the hostname of the server you are currently logged in.</li>
 <li><code>arch</code> displays the architecture (hardware name) of the Linux machine you are using.</li>
@@ -523,37 +519,26 @@ uptime</code></pre>
 <pre class="bash"><code>who</code></pre>
 <pre><code>## tomokiokuno0528 pts/1        2022-01-11 01:13 (42.166.94.34.bc.googleusercontent.com)
 ## tomokiokuno0528 pts/3        2022-01-10 23:43 (42.166.94.34.bc.googleusercontent.com)
-## maschepps pts/6        2022-01-17 19:33 (74.213.228.243)
 ## capj245  pts/13       2022-01-21 03:54 (s-164-67-232-61.resnet.ucla.edu)</code></pre>
 <pre class="bash"><code>w</code></pre>
-<<<<<<< HEAD
-<pre><code>##  08:01:46 up 18 days,  7:35,  4 users,  load average: 1.27, 0.70, 0.56
-=======
-<pre><code>##  06:14:20 up 18 days,  5:47,  5 users,  load average: 0.99, 0.87, 0.63
->>>>>>> 94727ce8e0c35a2f047c24787563fa43632625af
+<pre><code>##  23:21:58 up 18 days, 22:55,  3 users,  load average: 0.68, 0.66, 0.61
 ## USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
 ## tomokiok pts/1    42.166.94.34.bc. 11Jan22 10days  0.01s  0.01s -bash
-## tomokiok pts/3    42.166.94.34.bc. 10Jan22 10days  1.15s  0.97s ssh -i /home/tomokiokuno0528/.ssh/id_rsa tomokiokuno0528@server.ucla-biostat-203b.com
-## maschepp pts/6    74.213.228.243   Mon19    3days  0.03s  0.03s -bash
-<<<<<<< HEAD
-## capj245  pts/13   s-164-67-232-61. 03:54    4:06m  0.01s  0.01s -bash</code></pre>
-=======
-## capj245  pts/13   s-164-67-232-61. 03:54    2:19m  0.01s  0.01s -bash
-## tokramm  pts/18   76.82.34.63      05:07    1:06m  0.01s  0.01s -bash</code></pre>
->>>>>>> 94727ce8e0c35a2f047c24787563fa43632625af
+## tomokiok pts/3    42.166.94.34.bc. 10Jan22 10days  1.24s  1.06s ssh -i /home/tomokiokuno0528/.ssh/id_rsa tomokiokuno0528@server.ucla-biostat-203b.com
+## capj245  pts/13   s-164-67-232-61. 03:54   19:26m  0.01s  0.01s -bash</code></pre>
 <pre class="bash"><code>id</code></pre>
 <pre><code>## uid=1025(tomokiokuno0528) gid=1027(tomokiokuno0528) groups=1027(tomokiokuno0528) context=system_u:system_r:initrc_t:s0</code></pre>
 <pre class="bash"><code>last | head</code></pre>
-<pre><code>## tokramm  pts/18       76.82.34.63      Fri Jan 21 05:07 - 07:32  (02:25)    
+<pre><code>## yuruidon pts/10       42.166.94.34.bc. Fri Jan 21 21:08 - 22:51  (01:42)    
+## yuruidon pts/2        s-169-232-70-203 Fri Jan 21 21:06 - 22:51  (01:45)    
+## yuruidon pts/10       s-169-232-70-203 Fri Jan 21 20:40 - 21:03  (00:22)    
+## tokramm  pts/18       76.82.34.63      Fri Jan 21 05:07 - 07:32  (02:25)    
 ## tokramm  pts/18       76.82.34.63      Fri Jan 21 04:58 - 05:02  (00:04)    
 ## blei001  pts/18       cpe-76-171-0-146 Fri Jan 21 04:56 - 04:56  (00:00)    
 ## tokramm  pts/18       76.82.34.63      Fri Jan 21 04:53 - 04:54  (00:00)    
 ## tokramm  pts/18       76.82.34.63      Fri Jan 21 04:31 - 04:53  (00:21)    
 ## capj245  pts/13       s-164-67-232-61. Fri Jan 21 03:54   still logged in   
-## capj245  pts/13       s-164-67-232-61. Fri Jan 21 03:45 - 03:49  (00:04)    
-## capj245  pts/13       s-164-67-232-61. Fri Jan 21 03:36 - 03:38  (00:01)    
-## yuyuanli pts/30       149.142.103.176  Fri Jan 21 01:13 - 01:14  (00:00)    
-## huazhou  pts/7        108-64-58-205.li Fri Jan 21 01:03 - 01:52  (00:48)</code></pre>
+## capj245  pts/13       s-164-67-232-61. Fri Jan 21 03:45 - 03:49  (00:04)</code></pre>
 <ul>
 <li><code>who am i</code> displays information about the current terminal, such as username, console, and log-in time. However, the output is not displayed on a teaching server probably because the process is ongoing.</li>
 <li><code>who</code> displays the status of the users who are currently logged in.</li>
@@ -565,8 +550,8 @@ uptime</code></pre>
 <pre><code>## consents consented confers confered presents presented prefers prefered</code></pre>
 <pre class="bash"><code>time sleep 5</code></pre>
 <pre><code>## 
-## real 0m5.001s
-## user 0m0.000s
+## real 0m5.002s
+## user 0m0.001s
 ## sys  0m0.001s</code></pre>
 <ul>
 <li><code>echo {con,pre}{sent,fer}{s,ed}</code> displays all texts formed by <span class="math inline">\(2^3=8\)</span> combinations.</li>
@@ -585,7 +570,7 @@ uptime</code></pre>
 ## 511  time sleep 5
 ## 512  history | tail</code></pre>
 <ul>
-<li><code>history | tail</code> displays the last 10 commands in order from oldest to newest.</li>
+<li><code>history | tail</code> displays the last ten commands in order from oldest to newest.</li>
 </ul></li>
 </ul>
 </div>

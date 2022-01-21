@@ -107,7 +107,7 @@ How many unique patients (identified by `subject_id`) are in this data file?
 **Solution:** I offer two answers as shown below.
     ```{bash} 
     zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
-      tail -n +2 | sort | uniq -f 0 -w 8 | wc -l
+      awk -F "," '{print $1}' | sort | uniq | tail -n +2 | wc -l
     zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | \
       awk -F "," 'NR > 1 {print $1 | "sort | uniq"}' | wc -l
     ```
@@ -264,4 +264,4 @@ which implies that `"$1"`=`pg42671.txt`, `"$2"`=`20`, and `"$3"`=`5`, that is, t
     ## 511  time sleep 5
     ## 512  history | tail
     ```
-    - `history | tail` displays the last 10 commands in order from oldest to newest.
+    - `history | tail` displays the last ten commands in order from oldest to newest.
