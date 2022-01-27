@@ -43,16 +43,27 @@ There are quite a few utilities in R for reading plain text data files. Let us t
 Which function is fastest? Is there difference in the (default) parsed data types? (Hint: R function `system.time` measures run times.)
 
 For later questions, we stick to the tidyverse.
-    ```{r}
-    system.time(read.csv("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
-    system.time(read_csv("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
-    system.time(fread("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
-    ```
+
+**Answer:** I used `system.time` to measure run times for the three functions.
+```{r}
+    system.time(tmp_baser <- read.csv("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
+    system.time(tmp_tidy <- read_csv("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
+    system.time(tmp_fread <- fread("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
+```
+Looking at user time, CPU time charged for the execution of user instructions, `fread` is the fastest function. XXX
+
+I also used `str` to check data types for them.
+```{r}
+    str(tmp_baser)
+    str(tmp_tidy)
+    str(tmp_fread)
+```
+
 
 ## Q2. ICU stays
 
 `icustays.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/icu/icustays/>) contains data about Intensive Care Units (ICU) stays. The first 10 lines are
-    ```{r}
+```{r}
     system(
       str_c(
        "zcat < ", 
@@ -61,31 +72,33 @@ For later questions, we stick to the tidyverse.
        ), 
       intern = TRUE
     )
-    ```
+```
 
-1. Import `icustatys.csv.gz` as a tibble `icustays_tble`. 
-    ```{r}
-    as_tibble(icustays_tble <- read_csv("/mnt/mimiciv/1.0/icu/icustays.csv.gz"))
-    as_tibble(icustays_tble2 <- fread("/mnt/mimiciv/1.0/icu/icustays.csv.gz"))
-    ```
+1. Import `icustatys.csv.gz` as a tibble `icustays_tble`.  
+**Answer:** I used `fread` to import this file as a tibble.
+```{r}
+    as_tibble(icustays_tble <- fread("/mnt/mimiciv/1.0/icu/icustays.csv.gz"))
+```
 
-2. How many unique `subject_id`? Can a `subject_id` have multiple ICU stays? 
-    ```{r}
+2. How many unique `subject_id`? Can a `subject_id` have multiple ICU stays?  
+**Answer:** There are 53,150 unique `subject_id`s, which is less than the total number of rows. Hence, `subject_id` can have multiple ICU stays.
+```{r}
     subject_ids <- icustays_tble %>%
       group_by(subject_id) %>%
       summarise(n())
     subject_ids
-    ```
+```
 
-3. For each `subject_id`, let's only keep the first ICU stay in the tibble `icustays_tble`.
-    ```{r}
+3. For each `subject_id`, let's only keep the first ICU stay in the tibble `icustays_tble`.  
+**Answer:** I made a new variable `min_intime`, minimum of `intime` by `subject_id` and used `filter` to keep only rows where `intime` equals `min_intime` as follows. As a result, the new table has 53,150 rows.
+```{r}
     first_icustays_tble <- icustays_tble %>%
       group_by(subject_id) %>%
       arrange(subject_id) %>%
       mutate(min_intime = min(intime)) %>%
       filter(intime == min_intime)
     first_icustays_tble
-    ```
+```
 
 ## Q3. `admission` data
 
@@ -101,12 +114,14 @@ system(
 )
 ```
 
-1. Import `admissions.csv.gz` as a tibble `admissions_tble`.
+1. Import `admissions.csv.gz` as a tibble `admissions_tble`.  
+**Answer:** I used `fread` to import this file as a tibble.
     ```{r}
     as_tibble(admissions_tble <- read_csv("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
     ```
 
 2. Let's only keep the admissions that have a match in `icustays_tble` according to `subject_id` and `hadmi_id`.
+
 
 3. Summarize the following variables by graphics. 
 

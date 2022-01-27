@@ -265,20 +265,120 @@ system(str_c(&quot;tree -s -L 2 &quot;, shQuote(mimic_path)), intern = TRUE)</co
 <h2>Q1. <code>read.csv</code> (base R) vs <code>read_csv</code> (tidyverse) vs <code>fread</code> (data.table)</h2>
 <p>There are quite a few utilities in R for reading plain text data files. Let us test the speed of reading a moderate sized compressed csv file, <code>admissions.csv.gz</code>, by three programs: <code>read.csv</code> in base R, <code>read_csv</code> in tidyverse, and <code>fread</code> in the popular data.table package.</p>
 <p>Which function is fastest? Is there difference in the (default) parsed data types? (Hint: R function <code>system.time</code> measures run times.)</p>
-<p>For later questions, we stick to the tidyverse.</p>
+<p>For later questions, we stick to the tidyverse.<br />
+<strong>Answer:</strong> I used <code>system.time</code> and <code>str</code> to measure run times and data types for the three functions.</p>
+<pre><code>```r
+#system.time(str(read.csv(&quot;/mnt/mimiciv/1.0/core/admissions.csv.gz&quot;)))
+system.time(str(read_csv(&quot;/mnt/mimiciv/1.0/core/admissions.csv.gz&quot;)))
+```
+
+```
+## Rows: 523740 Columns: 15
+```
+
+```
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr  (7): admission_type, admission_location, discharge_location, insurance,...
+## dbl  (3): subject_id, hadm_id, hospital_expire_flag
+## dttm (5): admittime, dischtime, deathtime, edregtime, edouttime
+```
+
+```
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+```
+
+```
+## spec_tbl_df [523,740 × 15] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
+##  $ subject_id          : num [1:523740] 14679932 15585972 11989120 17817079 15078341 ...
+##  $ hadm_id             : num [1:523740] 21038362 24941086 21965160 24709883 23272159 ...
+##  $ admittime           : POSIXct[1:523740], format: &quot;2139-09-26 14:16:00&quot; &quot;2123-10-07 23:56:00&quot; ...
+##  $ dischtime           : POSIXct[1:523740], format: &quot;2139-09-28 11:30:00&quot; &quot;2123-10-12 11:22:00&quot; ...
+##  $ deathtime           : POSIXct[1:523740], format: NA NA ...
+##  $ admission_type      : chr [1:523740] &quot;ELECTIVE&quot; &quot;ELECTIVE&quot; &quot;ELECTIVE&quot; &quot;ELECTIVE&quot; ...
+##  $ admission_location  : chr [1:523740] NA NA NA NA ...
+##  $ discharge_location  : chr [1:523740] &quot;HOME&quot; &quot;HOME&quot; &quot;HOME&quot; &quot;HOME&quot; ...
+##  $ insurance           : chr [1:523740] &quot;Other&quot; &quot;Other&quot; &quot;Other&quot; &quot;Other&quot; ...
+##  $ language            : chr [1:523740] &quot;ENGLISH&quot; &quot;ENGLISH&quot; &quot;ENGLISH&quot; &quot;ENGLISH&quot; ...
+##  $ marital_status      : chr [1:523740] &quot;SINGLE&quot; NA NA NA ...
+##  $ ethnicity           : chr [1:523740] &quot;UNKNOWN&quot; &quot;WHITE&quot; &quot;UNKNOWN&quot; &quot;OTHER&quot; ...
+##  $ edregtime           : POSIXct[1:523740], format: NA NA ...
+##  $ edouttime           : POSIXct[1:523740], format: NA NA ...
+##  $ hospital_expire_flag: num [1:523740] 0 0 0 0 0 0 0 0 0 0 ...
+##  - attr(*, &quot;spec&quot;)=
+##   .. cols(
+##   ..   subject_id = col_double(),
+##   ..   hadm_id = col_double(),
+##   ..   admittime = col_datetime(format = &quot;&quot;),
+##   ..   dischtime = col_datetime(format = &quot;&quot;),
+##   ..   deathtime = col_datetime(format = &quot;&quot;),
+##   ..   admission_type = col_character(),
+##   ..   admission_location = col_character(),
+##   ..   discharge_location = col_character(),
+##   ..   insurance = col_character(),
+##   ..   language = col_character(),
+##   ..   marital_status = col_character(),
+##   ..   ethnicity = col_character(),
+##   ..   edregtime = col_datetime(format = &quot;&quot;),
+##   ..   edouttime = col_datetime(format = &quot;&quot;),
+##   ..   hospital_expire_flag = col_double()
+##   .. )
+##  - attr(*, &quot;problems&quot;)=&lt;externalptr&gt;
+```
+
+```
+##    user  system elapsed 
+##   3.674   0.270   2.339
+```
+
+```r
+system.time(str(fread(&quot;/mnt/mimiciv/1.0/core/admissions.csv.gz&quot;)))
+```
+
+```
+## Classes &#39;data.table&#39; and &#39;data.frame&#39;:   523740 obs. of  15 variables:
+##  $ subject_id          : int  14679932 15585972 11989120 17817079 15078341 19124609 17301855 17991012 16865435 13693648 ...
+##  $ hadm_id             : int  21038362 24941086 21965160 24709883 23272159 20517215 29732723 24298836 23216961 21640725 ...
+##  $ admittime           : POSIXct, format: &quot;2139-09-26 14:16:00&quot; &quot;2123-10-07 23:56:00&quot; ...
+##  $ dischtime           : POSIXct, format: &quot;2139-09-28 11:30:00&quot; &quot;2123-10-12 11:22:00&quot; ...
+##  $ deathtime           : POSIXct, format: NA NA ...
+##  $ admission_type      : chr  &quot;ELECTIVE&quot; &quot;ELECTIVE&quot; &quot;ELECTIVE&quot; &quot;ELECTIVE&quot; ...
+##  $ admission_location  : chr  &quot;&quot; &quot;&quot; &quot;&quot; &quot;&quot; ...
+##  $ discharge_location  : chr  &quot;HOME&quot; &quot;HOME&quot; &quot;HOME&quot; &quot;HOME&quot; ...
+##  $ insurance           : chr  &quot;Other&quot; &quot;Other&quot; &quot;Other&quot; &quot;Other&quot; ...
+##  $ language            : chr  &quot;ENGLISH&quot; &quot;ENGLISH&quot; &quot;ENGLISH&quot; &quot;ENGLISH&quot; ...
+##  $ marital_status      : chr  &quot;SINGLE&quot; &quot;&quot; &quot;&quot; &quot;&quot; ...
+##  $ ethnicity           : chr  &quot;UNKNOWN&quot; &quot;WHITE&quot; &quot;UNKNOWN&quot; &quot;OTHER&quot; ...
+##  $ edregtime           : POSIXct, format: NA NA ...
+##  $ edouttime           : POSIXct, format: NA NA ...
+##  $ hospital_expire_flag: int  0 0 0 0 0 0 0 0 0 0 ...
+##  - attr(*, &quot;.internal.selfref&quot;)=&lt;externalptr&gt;
+```
+
+```
+##    user  system elapsed 
+##   1.555   0.160   1.076
+```</code></pre>
+<p>Looking at user time, CPU time charged for the execution of user instructions, <code>fread</code> is the fastest function.</p>
 </div>
 <div id="q2.-icu-stays" class="section level2">
 <h2>Q2. ICU stays</h2>
 <p><code>icustays.csv.gz</code> (<a href="https://mimic.mit.edu/docs/iv/modules/icu/icustays/" class="uri">https://mimic.mit.edu/docs/iv/modules/icu/icustays/</a>) contains data about Intensive Care Units (ICU) stays. The first 10 lines are</p>
-<pre class="r"><code>system(
+<pre><code>```r
+system(
   str_c(
-    &quot;zcat &lt; &quot;, 
-    shQuote(str_c(mimic_path, &quot;/icu/icustays.csv.gz&quot;)), 
-    &quot; | head&quot;
-    ), 
+   &quot;zcat &lt; &quot;, 
+    shQuote(str_c(&quot;/mnt/mimiciv/1.0/&quot;, &quot;/icu/icustays.csv.gz&quot;)), 
+   &quot; | head&quot;
+   ), 
   intern = TRUE
-)</code></pre>
-<pre><code>##  [1] &quot;subject_id,hadm_id,stay_id,first_careunit,last_careunit,intime,outtime,los&quot;                                                    
+)
+```
+
+```
+##  [1] &quot;subject_id,hadm_id,stay_id,first_careunit,last_careunit,intime,outtime,los&quot;                                                    
 ##  [2] &quot;17867402,24528534,31793211,Trauma SICU (TSICU),Trauma SICU (TSICU),2154-03-03 04:11:00,2154-03-04 18:16:56,1.5874537037037035&quot; 
 ##  [3] &quot;14435996,28960964,31983544,Trauma SICU (TSICU),Trauma SICU (TSICU),2150-06-19 17:57:00,2150-06-22 18:33:54,3.025625&quot;           
 ##  [4] &quot;17609946,27385897,33183475,Trauma SICU (TSICU),Trauma SICU (TSICU),2138-02-05 18:54:00,2138-02-15 12:42:05,9.741724537037038&quot;  
@@ -287,11 +387,91 @@ system(str_c(&quot;tree -s -L 2 &quot;, shQuote(mimic_path)), intern = TRUE)</co
 ##  [7] &quot;10215159,24283593,34569476,Trauma SICU (TSICU),Trauma SICU (TSICU),2124-09-20 15:05:29,2124-09-21 22:06:58,1.2926967592592593&quot; 
 ##  [8] &quot;14489052,26516390,35056286,Trauma SICU (TSICU),Trauma SICU (TSICU),2118-10-26 10:33:56,2118-10-26 20:28:10,0.4126620370370371&quot; 
 ##  [9] &quot;15914763,28906020,36909804,Trauma SICU (TSICU),Trauma SICU (TSICU),2176-12-14 12:00:00,2176-12-17 11:47:01,2.9909837962962964&quot; 
-## [10] &quot;16256226,20013290,39289362,Neuro Stepdown,Neuro Stepdown,2150-12-20 16:09:08,2150-12-21 14:58:40,0.9510648148148149&quot;</code></pre>
+## [10] &quot;16256226,20013290,39289362,Neuro Stepdown,Neuro Stepdown,2150-12-20 16:09:08,2150-12-21 14:58:40,0.9510648148148149&quot;
+```</code></pre>
 <ol style="list-style-type: decimal">
-<li><p>Import <code>icustatys.csv.gz</code> as a tibble <code>icustays_tble</code>.</p></li>
-<li><p>How many unique <code>subject_id</code>? Can a <code>subject_id</code> have multiple ICU stays?</p></li>
-<li><p>For each <code>subject_id</code>, let’s only keep the first ICU stay in the tibble <code>icustays_tble</code>.</p></li>
+<li><p>Import <code>icustatys.csv.gz</code> as a tibble <code>icustays_tble</code>.</p>
+<pre class="r"><code>as_tibble(icustays_tble &lt;- read_csv(&quot;/mnt/mimiciv/1.0/icu/icustays.csv.gz&quot;))</code></pre>
+<pre><code>## Rows: 76540 Columns: 8</code></pre>
+<pre><code>## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr  (2): first_careunit, last_careunit
+## dbl  (4): subject_id, hadm_id, stay_id, los
+## dttm (2): intime, outtime</code></pre>
+<pre><code>## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre><code>## # A tibble: 76,540 × 8
+##    subject_id  hadm_id  stay_id first_careunit last_careunit intime             
+##         &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt;         &lt;dttm&gt;             
+##  1   17867402 24528534 31793211 Trauma SICU (… Trauma SICU … 2154-03-03 04:11:00
+##  2   14435996 28960964 31983544 Trauma SICU (… Trauma SICU … 2150-06-19 17:57:00
+##  3   17609946 27385897 33183475 Trauma SICU (… Trauma SICU … 2138-02-05 18:54:00
+##  4   18966770 23483021 34131444 Trauma SICU (… Trauma SICU … 2123-10-25 10:35:00
+##  5   12776735 20817525 34547665 Neuro Stepdown Neuro Stepdo… 2200-07-12 00:33:00
+##  6   10215159 24283593 34569476 Trauma SICU (… Trauma SICU … 2124-09-20 15:05:29
+##  7   14489052 26516390 35056286 Trauma SICU (… Trauma SICU … 2118-10-26 10:33:56
+##  8   15914763 28906020 36909804 Trauma SICU (… Trauma SICU … 2176-12-14 12:00:00
+##  9   16256226 20013290 39289362 Neuro Stepdown Neuro Stepdo… 2150-12-20 16:09:08
+## 10   19194449 21641999 39387567 Coronary Care… Coronary Car… 2123-11-12 02:53:35
+## # … with 76,530 more rows, and 2 more variables: outtime &lt;dttm&gt;, los &lt;dbl&gt;</code></pre>
+<pre class="r"><code>as_tibble(icustays_tble2 &lt;- fread(&quot;/mnt/mimiciv/1.0/icu/icustays.csv.gz&quot;))</code></pre>
+<pre><code>## # A tibble: 76,540 × 8
+##    subject_id  hadm_id  stay_id first_careunit last_careunit intime             
+##         &lt;int&gt;    &lt;int&gt;    &lt;int&gt; &lt;chr&gt;          &lt;chr&gt;         &lt;dttm&gt;             
+##  1   17867402 24528534 31793211 Trauma SICU (… Trauma SICU … 2154-03-03 04:11:00
+##  2   14435996 28960964 31983544 Trauma SICU (… Trauma SICU … 2150-06-19 17:57:00
+##  3   17609946 27385897 33183475 Trauma SICU (… Trauma SICU … 2138-02-05 18:54:00
+##  4   18966770 23483021 34131444 Trauma SICU (… Trauma SICU … 2123-10-25 10:35:00
+##  5   12776735 20817525 34547665 Neuro Stepdown Neuro Stepdo… 2200-07-12 00:33:00
+##  6   10215159 24283593 34569476 Trauma SICU (… Trauma SICU … 2124-09-20 15:05:29
+##  7   14489052 26516390 35056286 Trauma SICU (… Trauma SICU … 2118-10-26 10:33:56
+##  8   15914763 28906020 36909804 Trauma SICU (… Trauma SICU … 2176-12-14 12:00:00
+##  9   16256226 20013290 39289362 Neuro Stepdown Neuro Stepdo… 2150-12-20 16:09:08
+## 10   19194449 21641999 39387567 Coronary Care… Coronary Car… 2123-11-12 02:53:35
+## # … with 76,530 more rows, and 2 more variables: outtime &lt;dttm&gt;, los &lt;dbl&gt;</code></pre></li>
+<li><p>How many unique <code>subject_id</code>? Can a <code>subject_id</code> have multiple ICU stays?</p>
+<pre class="r"><code>subject_ids &lt;- icustays_tble %&gt;%
+  group_by(subject_id) %&gt;%
+  summarise(n())
+subject_ids</code></pre>
+<pre><code>## # A tibble: 53,150 × 2
+##    subject_id `n()`
+##         &lt;dbl&gt; &lt;int&gt;
+##  1   10000032     1
+##  2   10000980     1
+##  3   10001217     2
+##  4   10001725     1
+##  5   10001884     1
+##  6   10002013     1
+##  7   10002155     3
+##  8   10002223     1
+##  9   10002348     1
+## 10   10002428     4
+## # … with 53,140 more rows</code></pre></li>
+<li><p>For each <code>subject_id</code>, let’s only keep the first ICU stay in the tibble <code>icustays_tble</code>.</p>
+<pre class="r"><code>first_icustays_tble &lt;- icustays_tble %&gt;%
+  group_by(subject_id) %&gt;%
+  arrange(subject_id) %&gt;%
+  mutate(min_intime = min(intime)) %&gt;%
+  filter(intime == min_intime)
+first_icustays_tble</code></pre>
+<pre><code>## # A tibble: 53,150 × 9
+## # Groups:   subject_id [53,150]
+##    subject_id  hadm_id  stay_id first_careunit last_careunit intime             
+##         &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt;         &lt;dttm&gt;             
+##  1   10000032 29079034 39553978 Medical Inten… Medical Inte… 2180-07-23 14:00:00
+##  2   10000980 26913865 39765666 Medical Inten… Medical Inte… 2189-06-27 08:42:00
+##  3   10001217 24597018 37067082 Surgical Inte… Surgical Int… 2157-11-20 19:18:02
+##  4   10001725 25563031 31205490 Medical/Surgi… Medical/Surg… 2110-04-11 15:52:22
+##  5   10001884 26184834 37510196 Medical Inten… Medical Inte… 2131-01-11 04:20:05
+##  6   10002013 23581541 39060235 Cardiac Vascu… Cardiac Vasc… 2160-05-18 10:00:53
+##  7   10002155 23822395 33685454 Coronary Care… Coronary Car… 2129-08-04 12:45:00
+##  8   10002223 22494570 39638202 Trauma SICU (… Trauma SICU … 2158-01-15 08:01:49
+##  9   10002348 22725460 32610785 Neuro Interme… Neuro Interm… 2112-11-30 23:24:00
+## 10   10002428 28662225 33987268 Medical Inten… Medical Inte… 2156-04-12 16:24:18
+## # … with 53,140 more rows, and 3 more variables: outtime &lt;dttm&gt;, los &lt;dbl&gt;,
+## #   min_intime &lt;dttm&gt;</code></pre></li>
 </ol>
 </div>
 <div id="q3.-admission-data" class="section level2">
@@ -316,7 +496,34 @@ system(str_c(&quot;tree -s -L 2 &quot;, shQuote(mimic_path)), intern = TRUE)</co
 ##  [9] &quot;17991012,24298836,2181-07-10 20:28:00,2181-07-12 15:49:00,,ELECTIVE,,HOME,Other,ENGLISH,,WHITE,,,0&quot;                                                                                        
 ## [10] &quot;16865435,23216961,2185-07-19 02:12:00,2185-07-21 11:50:00,,ELECTIVE,,HOME,Other,ENGLISH,,WHITE,,,0&quot;</code></pre>
 <ol style="list-style-type: decimal">
-<li><p>Import <code>admissions.csv.gz</code> as a tibble <code>admissions_tble</code>.</p></li>
+<li><p>Import <code>admissions.csv.gz</code> as a tibble <code>admissions_tble</code>.</p>
+<pre class="r"><code>as_tibble(admissions_tble &lt;- read_csv(&quot;/mnt/mimiciv/1.0/core/admissions.csv.gz&quot;))</code></pre>
+<pre><code>## Rows: 523740 Columns: 15</code></pre>
+<pre><code>## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr  (7): admission_type, admission_location, discharge_location, insurance,...
+## dbl  (3): subject_id, hadm_id, hospital_expire_flag
+## dttm (5): admittime, dischtime, deathtime, edregtime, edouttime</code></pre>
+<pre><code>## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre><code>## # A tibble: 523,740 × 15
+##    subject_id  hadm_id admittime           dischtime          
+##         &lt;dbl&gt;    &lt;dbl&gt; &lt;dttm&gt;              &lt;dttm&gt;             
+##  1   14679932 21038362 2139-09-26 14:16:00 2139-09-28 11:30:00
+##  2   15585972 24941086 2123-10-07 23:56:00 2123-10-12 11:22:00
+##  3   11989120 21965160 2147-01-14 09:00:00 2147-01-17 14:25:00
+##  4   17817079 24709883 2165-12-27 17:33:00 2165-12-31 21:18:00
+##  5   15078341 23272159 2122-08-28 08:48:00 2122-08-30 12:32:00
+##  6   19124609 20517215 2169-03-14 12:44:00 2169-03-20 19:15:00
+##  7   17301855 29732723 2140-06-06 14:23:00 2140-06-08 14:25:00
+##  8   17991012 24298836 2181-07-10 20:28:00 2181-07-12 15:49:00
+##  9   16865435 23216961 2185-07-19 02:12:00 2185-07-21 11:50:00
+## 10   13693648 21640725 2111-01-30 23:43:00 2111-02-02 13:03:00
+## # … with 523,730 more rows, and 11 more variables: deathtime &lt;dttm&gt;,
+## #   admission_type &lt;chr&gt;, admission_location &lt;chr&gt;, discharge_location &lt;chr&gt;,
+## #   insurance &lt;chr&gt;, language &lt;chr&gt;, marital_status &lt;chr&gt;, ethnicity &lt;chr&gt;,
+## #   edregtime &lt;dttm&gt;, edouttime &lt;dttm&gt;, hospital_expire_flag &lt;dbl&gt;</code></pre></li>
 <li><p>Let’s only keep the admissions that have a match in <code>icustays_tble</code> according to <code>subject_id</code> and <code>hadmi_id</code>.</p></li>
 <li><p>Summarize the following variables by graphics.</p></li>
 </ol>
