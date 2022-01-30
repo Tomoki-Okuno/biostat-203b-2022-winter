@@ -46,17 +46,17 @@ For later questions, we stick to the tidyverse.
 
 **Answer:** I used `system.time` to measure run times for the three functions.
 ```{r}
-    system.time(tmp_baser <- read.csv("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
-    system.time(tmp_tidy <- read_csv("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
-    system.time(tmp_fread <- fread("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
+system.time(tmp_r <- read.csv("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
+system.time(tmp_t <- read_csv("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
+system.time(tmp_f <- fread("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
 ```
 Looking at user time, CPU time charged for the execution of user instructions, `fread` is the fastest function. XXX
 
 I also used `str` to check data types for them.
 ```{r}
-    str(tmp_baser)
-    str(tmp_tidy)
-    str(tmp_fread)
+str(tmp_r)
+str(tmp_t)
+str(tmp_f)
 ```
 
 
@@ -64,40 +64,39 @@ I also used `str` to check data types for them.
 
 `icustays.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/icu/icustays/>) contains data about Intensive Care Units (ICU) stays. The first 10 lines are
 ```{r}
-    system(
-      str_c(
-       "zcat < ", 
-        shQuote(str_c("/mnt/mimiciv/1.0/", "/icu/icustays.csv.gz")), 
-       " | head"
-       ), 
-      intern = TRUE
-    )
+system(
+  str_c(
+    "zcat < ", 
+    shQuote(str_c("/mnt/mimiciv/1.0/", "/icu/icustays.csv.gz")), 
+    " | head"
+  ), 
+  intern = TRUE
+)
 ```
 
 1. Import `icustatys.csv.gz` as a tibble `icustays_tble`.  
-**Answer:** I used `fread` to import this file as a tibble.
+**Answer:** I used `read_csv` to import this file as a tibble.
 ```{r}
-    as_tibble(icustays_tble <- fread("/mnt/mimiciv/1.0/icu/icustays.csv.gz"))
+icustays_tble <- read_csv("/mnt/mimiciv/1.0/icu/icustays.csv.gz")
 ```
 
 2. How many unique `subject_id`? Can a `subject_id` have multiple ICU stays?  
 **Answer:** There are 53,150 unique `subject_id`s, which is less than the total number of rows. Hence, `subject_id` can have multiple ICU stays.
 ```{r}
-    subject_ids <- icustays_tble %>%
-      group_by(subject_id) %>%
-      summarise(n())
-    subject_ids
+subject_ids <- icustays_tble %>%
+  group_by(subject_id) %>%
+  summarise(n())
+subject_ids
 ```
 
 3. For each `subject_id`, let's only keep the first ICU stay in the tibble `icustays_tble`.  
-**Answer:** I made a new variable `min_intime`, minimum of `intime` by `subject_id` and used `filter` to keep only rows where `intime` equals `min_intime` as follows. As a result, the new table has 53,150 rows.
+**Answer:** I used `arrange` to sort `intimes` in ascending order, and then I removed the duplicates for `subject_id`. As a result, the new table has 53,150 rows.  
+*Question: we also have to keep the name (or overwrite)?*
 ```{r}
-    first_icustays_tble <- icustays_tble %>%
-      group_by(subject_id) %>%
-      arrange(subject_id) %>%
-      mutate(min_intime = min(intime)) %>%
-      filter(intime == min_intime)
-    first_icustays_tble
+icustays_tble <- icustays_tble %>%
+  arrange(subject_id, intime)  %>%
+  distinct(subject_id, .keep_all = TRUE)
+icustays_tble
 ```
 
 ## Q3. `admission` data
@@ -115,13 +114,16 @@ system(
 ```
 
 1. Import `admissions.csv.gz` as a tibble `admissions_tble`.  
-**Answer:** I used `fread` to import this file as a tibble.
-    ```{r}
-    as_tibble(admissions_tble <- read_csv("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
-    ```
+**Answer:** I used `read_csv` to import this file as a tibble.
+```{r}
+admissions_tble <- read_csv("/mnt/mimiciv/1.0/core/admissions.csv.gz")
+```
 
 2. Let's only keep the admissions that have a match in `icustays_tble` according to `subject_id` and `hadmi_id`.
-
+```{r}
+admissions_tble <- admissions_tble %>%
+  semi_join(icustays_tble, by=c("subject_id", "hadm_id"))
+```
 
 3. Summarize the following variables by graphics. 
 
@@ -130,6 +132,19 @@ system(
 - admission month day  
 - admission week day  
 - admission hour (anything unusual?)  
+```{r}
+ggplot(data = admissions_tble) + 
+  stat_count(mapping = aes(x = year(admittime)))
+ggplot(data = admissions_tble) + 
+  stat_count(mapping = aes(x = lubridate::month(admittime, label=T)))
+ggplot(data = admissions_tble) + 
+  stat_count(mapping = aes(x = mday(admittime)))
+ggplot(data = admissions_tble) + 
+  stat_count(mapping = aes(x = lubridate::wday(admittime, label=T)))
+ggplot(data = admissions_tble) + 
+  stat_count(mapping = aes(x = hour(admittime)))
+```
+
 
 ## Q4. `patients` data
 
@@ -145,7 +160,13 @@ system(
 )
 ```
 
-1. Import `patients.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/core/patients/>) as a tibble `patients_tble` and only keep the patients who have a match in `icustays_tble` (according to `subject_id`).
+1. Import `patients.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/core/patients/>) as a tibble `patients_tble` and only keep the patients who have a match in `icustays_tble` (according to `subject_id`).  
+**Answer:** I used `read_csv` to import this file as a tibble.
+```{r}
+patients_tble <- read_csv("/mnt/mimiciv/1.0/core/patients.csv.gz")
+patients_tble <- patients_tble %>% 
+  semi_join(icustays_tble, by="subject_id")
+```
 
 2. Summarize variables `gender` and `anchor_age`, and explain any patterns you see.
 
@@ -156,9 +177,9 @@ system(
 system(
   str_c(
     "zcat < ", 
-    shQuote(str_c(mimic_path, "/hosp/labevents.csv.gz")), 
+    shQuote(str_c(mimic_path, "/hosp/labevents_filtered_itemid.csv.gz")), 
     " | head"
-    ), 
+  ), 
   intern = TRUE
 )
 ```
@@ -169,19 +190,57 @@ system(
     "zcat < ", 
     shQuote(str_c(mimic_path, "/hosp/d_labitems.csv.gz")), 
     " | head"
-    ), 
+  ), 
   intern = TRUE
 )
 ```
 
-1. Find how many rows are in `labevents.csv.gz`.
+1. Find how many rows are in `labevents.csv.gz`.  
+**Answer:** `labevents.csv.gz` has 122,103,667 rows. (`labevents_filtered_itemid.csv.gz` has 30,198,826 rows.)
+```{r}
+system(
+  str_c(
+    "zcat < ", 
+    shQuote(str_c(mimic_path, "/hosp/labevents.csv.gz")), 
+    " | tail -n +2 | wc -l"
+  ), 
+  intern = TRUE
+)
+```
 
-2. We are interested in the lab measurements of creatinine (50912), potassium (50971), sodium (50983), chloride (50902), bicarbonate (50882), hematocrit (51221), white blood cell count (51301), glucose (50931), magnesium (50960), and calcium (50893). Retrieve a subset of `labevents.csv.gz` only containing these items for the patients in `icustays_tble` as a tibble `labevents_tble`. 
+2. We are interested in the lab measurements of creatinine (50912), potassium (50971), sodium (50983), chloride (50902), bicarbonate (50882), hematocrit (51221), white blood cell count (51301), glucose (50931), magnesium (50960), and calcium (50893). Retrieve a subset of `labevents.csv.gz` only containing these items for the patients in `icustays_tble` as a tibble `labevents_tble`.  
 
     Hint: `labevents.csv.gz` is a data file too big to be read in by the `read_csv` function in its default setting. Utilize the `col_select` and `lazy` options in the `read_csv` function to reduce the memory burden.
+    
+**Answer:** I used `read_`csv` to import this file as a tibble.
+```{r}
+labevents_tble <- read_csv("/mnt/mimiciv/1.0/hosp/labevents_filtered_itemid.csv.gz", lazy = TRUE)
+
+# Now we do not have to use col_select? The original file has 15 columns.
+choice <- c("50912", "50971", "50983", "50902", "50882", "51221", "51301", "50931", "50960", "50893")
+
+labevents_tble <- labevents_tble %>%
+  filter(itemid %in% choice) %>%
+  semi_join(icustays_tble, by="subject_id")
+labevents_tble
+```
 
 3. Further restrict `labevents_tble` to the first lab measurement during the ICU stay. 
-4. Summarize the lab measurements by appropriate numerics and graphics. 
+```{r}
+icustays_tble
+labevents_tble <- labevents_tble %>%
+  arrange(subject_id, charttime)  %>%
+  distinct(subject_id, .keep_all = TRUE) #53097
+labevents_tble
+```
+
+4. Summarize the lab measurements by appropriate numerics and graphics.
+```{r}
+labevents_tble
+ggplot(data = labevents_tble) + 
+  geom_bar(mapping = aes(x = itemid), na.rm = TRUE)
+```
+
 
 ## Q6. Vitals from charted events
 
