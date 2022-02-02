@@ -262,25 +262,32 @@ labevents_tble <-
                                  valuenum = col_double()),
            lazy = TRUE)
 
+d_labitems_tble <- read_csv("/mnt/mimiciv/1.0/hosp/d_labitems.csv.gz")
+
 # item list we plan to use (but we do not need this anymore)
 choice_lab <- c("50912", "50971", "50983", "50902", "50882", 
                 "51221", "51301", "50931", "50960", "50893")
 
-# only containing these items for the patients in icustays_tble
 labevents_tble <- labevents_tble %>%
-  semi_join(icustays_tble, by = c("subject_id"))%>%
+  # only contain these items for the patients in icustays_tble
+  semi_join(icustays_tble, by = c("subject_id")) %>%
+  # add label in d_labitems
+  left_join(select(d_labitems_tble, itemid, label), by = c("itemid")) %>%
   print(width = Inf)
 ```
 
 3. Further restrict `labevents_tble` to the first lab measurement during the ICU stay. 
 **Solution:** The following code made `labevents_tble` 523252 rows.
 ```{r}
+file.remove("labevents_tble.rds")
+
 if (file.exists("labevents_tble.rds")) {
   labevents_tble <- read_rds("labevents_tble.rds")
 } else {
   labevents_tble <- labevents_tble %>%
     # add intime from icustays_tble to find the first lab measurement
-    left_join(select(icustays_tble, subject_id, intime), by = c("subject_id")) %>%
+    left_join(select(icustays_tble, subject_id, intime), 
+              by = c("subject_id")) %>%
     # only keep lab measurements after intime
     filter(charttime >= intime) %>%
     # sort charttime in ascending order by subject id and item id
@@ -288,19 +295,30 @@ if (file.exists("labevents_tble.rds")) {
     arrange(charttime, .by_group = TRUE) %>%
     # only keep the first lab measurement by group
     slice_head(n = 1) %>%
+    # spread label
     ungroup() %>%
+    select(-c(itemid, charttime, intime)) %>%
+    pivot_wider(names_from = label, values_from = valuenum) %>%
     print(width = Inf) %>%
     write_rds("labevents_tble.rds")
 }
 ```
 
 4. Summarize the lab measurements by appropriate numerics and graphics.  
-numeric summary
+I am gonna add numeric
 ```{r}
-labevents_tble
+labevents_tble %>%
+  group_by(label) %>%
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n)) 
+
 ggplot(data = labevents_tble) + 
   geom_bar(mapping = aes(x = factor(itemid))) +
-  labs(title = "Bar plot for item") +
+  labs(title = "Bar plot for lab item") +
+  labs(x = "Item")
+ggplot(data = labevents_tble) + 
+  geom_bar(mapping = aes(x = factor(label))) +
+  labs(title = "Bar plot for lab item") +
   labs(x = "Item")
 ```
 
@@ -341,23 +359,30 @@ chartevents_tble <-
                                  valuenum = col_double()),
            lazy = TRUE)
 
+d_items_tble <- read_csv("/mnt/mimiciv/1.0/icu/d_items.csv.gz")
+
 # item list we plan to use (but we do not need this anymore)
 choice2 <- c("220045", "220181", "220179", "223761", "220210")
 
-# only containing these items for the patients in icustays_tble
 chartevents_tble <- chartevents_tble %>%
+  # only containing these items for the patients in icustays_tble
   semi_join(icustays_tble, by = c("subject_id")) %>%
+  # add label in d_items
+  left_join(select(d_items_tble, itemid, label), by = c("itemid")) %>%
   print(width = Inf)
 ```
 
 2. Further restrict `chartevents_tble` to the first vital measurement during the ICU stay. 
 ```{r}
+file.remove("chartevents_tble.rds")
+
 if (file.exists("chartevents_tble.rds")) {
-  chartevents_tble <- read_rds("chartevents_tble")
+  chartevents_tble <- read_rds("chartevents_tble.rds")
 } else {
   chartevents_tble <- chartevents_tble %>%
     # add intime from icustays_tble to find the first lab measurement
-    left_join(select(icustays_tble, subject_id, intime), by = c("subject_id")) %>%
+    left_join(select(icustays_tble, subject_id, intime), 
+              by = c("subject_id")) %>%
     # only keep lab measurements after intime
     filter(charttime >= intime) %>%
     # sort charttime in ascending order by subject id and item id
@@ -365,7 +390,10 @@ if (file.exists("chartevents_tble.rds")) {
     arrange(charttime, .by_group = TRUE) %>%
     # only keep the first lab measurement by group
     slice_head(n = 1) %>%
+    # spread label
     ungroup() %>%
+    select(c(subject_id, label, valuenum)) %>%
+    pivot_wider(names_from = label, values_from = valuenum) %>%
     print(width = Inf) %>%
     write_rds("chartevents_tble.rds")
 }
@@ -393,22 +421,25 @@ and columns contain at least following variables
 - first vital measurements during ICU stay
 - an indicator variable `thirty_day_mort` whether the patient died within 30 days of hospital admission (30 day mortality)
 ```{r}
-icustays_tble
-admissions_tble
-patients_tble
 mimic_icu_cohort <- icustays_tble %>%
   left_join(patients_tble, by = c("subject_id")) %>%
-  filter(anchor_age > 18) %>%
-  left_join(admissions_tble, by = c("subject_id")) %>%
+  left_join(admissions_tble, by = c("subject_id", "hadm_id")) %>%
+  # compute age at admission
+  mutate(age_hadm = anchor_age + year(admittime) - anchor_year) %>%
+  # keep only patients who are over 18
+  filter(age_hadm > 18) %>%
   left_join(labevents_tble, by = c("subject_id")) %>%
   left_join(chartevents_tble, by = c("subject_id")) %>%
-  mutate(day_mort = as.Date(deathtime) - as.Date(admittime)) %>%
-  mutate(thirty_day_mort = if_else(is.na(day_mort) == 1, 0, if_else(day_mort <= 30, 1, 0)))
+  # create thirty_day_mort that has 1 if a patient died within 30 days and 0 if not
+  mutate(thirty_day_mort = 
+           ifelse(is.na(deathtime), Inf, 
+                  ifelse(as.Date(deathtime) - as.Date(admittime) <= 30, 1,
+                         0))) %>%
+  print(width = Inf) %>%
+  write_rds("mimic_icu_cohort.rds")
 
-mimic_icu_cohort2 <- mimic_icu_cohort %>%
-  filter(day_mort>28, day_mort<32) %>%
-  select(deathtime, day_mort, thirty_day_mort)
-head(mimic_icu_cohort)
+nrow(mimic_icu_cohort)
+table(mimic_icu_cohort$thirty_day_mort)
 ```
 
 ## Q8. Exploratory data analysis (EDA)
