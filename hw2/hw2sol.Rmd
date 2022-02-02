@@ -105,7 +105,7 @@ system(
     "zcat < ", 
     shQuote(str_c(mimic_path, "/core/admissions.csv.gz")), 
     " | head"
-    ), 
+  ), 
   intern = TRUE
 )
 ```
@@ -133,35 +133,35 @@ head(admissions_tble)
 ```{r}
 ggplot(data = admissions_tble) + 
   geom_bar(mapping = aes(x = year(admittime))) +
-  labs(title = "Histogram of admission time by year") +
+  labs(title = "Bar plot of admission time by year") +
   labs(x = "Admission year")
 ```
 - admission month
 ```{r}
 ggplot(data = admissions_tble) + 
   stat_count(mapping = aes(x = lubridate::month(admittime, label = T))) +
-  labs(title = "Histogram of admission time by month") +
+  labs(title = "Bar plot of admission time by month") +
   labs(x = "Admission month")
 ```
 - admission month day
 ```{r}
 ggplot(data = admissions_tble) + 
   stat_count(mapping = aes(x = mday(admittime))) +
-  labs(title = "Histogram of admission time by month and day") +
+  labs(title = "Bar plot of admission time by month and day") +
   labs(x = "Admission month day")
 ```
 - admission week day  
 ```{r}
 ggplot(data = admissions_tble) + 
   stat_count(mapping = aes(x = lubridate::wday(admittime, label = T))) +
-  labs(title = "Histogram of admission time by week day") +
+  labs(title = "Bar plot of admission time by week day") +
   labs(x = "Admission week day")
 ```
 - admission hour (anything unusual?)
 ```{r}
 ggplot(data = admissions_tble) + 
   stat_count(mapping = aes(x = hour(admittime))) +
-  labs(title = "Histogram of admission time by hour") +
+  labs(title = "Bar plot of admission time by hour") +
   labs(x = "Admission hour")
 ```
 **Solution:** From the above graph, 0 AM and 7 AM appear to be unusual because the frequency is higher than other times in spite of late nights and early mornings.
@@ -176,7 +176,7 @@ system(
     "zcat < ", 
     shQuote(str_c(mimic_path, "/core/patients.csv.gz")), 
     " | head"
-    ), 
+  ), 
   intern = TRUE
 )
 ```
@@ -186,26 +186,24 @@ system(
 ```{r}
 patients_tble <- read_csv("/mnt/mimiciv/1.0/core/patients.csv.gz")
 patients_tble <- patients_tble %>%
-  semi_join(icustays_tble, by = "subject_id")
+  semi_join(icustays_tble, by = c("subject_id"))
 head(patients_tble)
 ```
 
 2. Summarize variables `gender` and `anchor_age`, and explain any patterns you see.  
 **Solution:** I used a box plot and a histogram to visualize the distribution of the two variables.  
 The boxplot indicates:
-  - Both distributions are skewed to the left and have almost the same range;
-  - The mean age of women is slightly higher than that of men;  
+- Both distributions are skewed to the left and have almost the same range;
+- The mean age of women is slightly higher than that of men;  
 The histogram indicates:
-  - Many ages have more males than females;
-  - There is a significant number of patients with the maximum age (91 years).
+- Many ages have more males than females;
+- There is a significant number of patients with the maximum age (91 years).
 ```{r}
 ggplot(data = patients_tble, mapping = aes(x = gender, y = anchor_age)) + 
   stat_boxplot(geom = "errorbar", width = 0.2) + 
   geom_boxplot() +
-  labs(title = "Boxplot for patient’s age by gender") +
-  labs(x = "Gender", y = "Patient’s age")
-
-ggplot(data = patients_tble) + 
+  
+  ggplot(data = patients_tble) + 
   geom_bar(mapping = aes(x = anchor_age, fill = gender)) +
   labs(title = "Histogram for patient’s age by gender") +
   labs(x = "Patient’s age")
@@ -252,38 +250,58 @@ system(
 
 2. We are interested in the lab measurements of creatinine (50912), potassium (50971), sodium (50983), chloride (50902), bicarbonate (50882), hematocrit (51221), white blood cell count (51301), glucose (50931), magnesium (50960), and calcium (50893). Retrieve a subset of `labevents.csv.gz` only containing these items for the patients in `icustays_tble` as a tibble `labevents_tble`.  
 
-    Hint: `labevents.csv.gz` is a data file too big to be read in by the `read_csv` function in its default setting. Utilize the `col_select` and `lazy` options in the `read_csv` function to reduce the memory burden.
-    
+Hint: `labevents.csv.gz` is a data file too big to be read in by the `read_csv` function in its default setting. Utilize the `col_select` and `lazy` options in the `read_csv` function to reduce the memory burden.
+
 **Solution:** I used `read_csv` to import this file as a tibble and obtain 30,198,826 rows. The subset after narrowing has 16,698,462 rows.
 ```{r}
 labevents_tble <- 
-  read_csv("/mnt/mimiciv/1.0/hosp/labevents_filtered_itemid.csv.gz", lazy = T)
+  read_csv("/mnt/mimiciv/1.0/hosp/labevents_filtered_itemid.csv.gz", 
+           col_types = cols_only(subject_id = col_double(), 
+                                 itemid = col_double(), 
+                                 charttime = col_datetime(), 
+                                 valuenum = col_double()),
+           lazy = TRUE)
 
-choice <- c("50912", "50971", "50983", "50902", "50882", 
-            "51221", "51301", "50931", "50960", "50893")
+# item list we plan to use (but we do not need this anymore)
+choice_lab <- c("50912", "50971", "50983", "50902", "50882", 
+                "51221", "51301", "50931", "50960", "50893")
 
+# only containing these items for the patients in icustays_tble
 labevents_tble <- labevents_tble %>%
-  filter(itemid %in% choice) %>%
-  arrange(subject_id) %>%
-  semi_join(icustays_tble, by = "subject_id")
-head(labevents_tble)
+  semi_join(icustays_tble, by = c("subject_id"))%>%
+  print(width = Inf)
 ```
 
 3. Further restrict `labevents_tble` to the first lab measurement during the ICU stay. 
+**Solution:** The following code made `labevents_tble` 523252 rows.
 ```{r}
-labevents_tble <- labevents_tble %>%
-  group_by(subject_id) %>%
-  arrange(subject_id, charttime)  %>%
-  distinct(subject_id, itemid, .keep_all = TRUE) #528933 rows
-labevents_tble
-summary(labevents_tble$valuenum)
+if (file.exists("labevents_tble.rds")) {
+  labevents_tble <- read_rds("labevents_tble.rds")
+} else {
+  labevents_tble <- labevents_tble %>%
+    # add intime from icustays_tble to find the first lab measurement
+    left_join(select(icustays_tble, subject_id, intime), by = c("subject_id")) %>%
+    # only keep lab measurements after intime
+    filter(charttime >= intime) %>%
+    # sort charttime in ascending order by subject id and item id
+    group_by(subject_id, itemid) %>%
+    arrange(charttime, .by_group = TRUE) %>%
+    # only keep the first lab measurement by group
+    slice_head(n = 1) %>%
+    ungroup() %>%
+    print(width = Inf) %>%
+    write_rds("labevents_tble.rds")
+}
 ```
 
-4. Summarize the lab measurements by appropriate numerics and graphics. memo: label shikkari
+4. Summarize the lab measurements by appropriate numerics and graphics.  
+numeric summary
 ```{r}
 labevents_tble
 ggplot(data = labevents_tble) + 
-  geom_bar(mapping = aes(x = factor(itemid), na.rm = TRUE))
+  geom_bar(mapping = aes(x = factor(itemid))) +
+  labs(title = "Bar plot for item") +
+  labs(x = "Item")
 ```
 
 
@@ -310,31 +328,47 @@ system(
 )
 ```
 
-1. We are interested in the vitals for ICU patients: heart rate (220045), mean non-invasive blood pressure (220181), systolic non-invasive blood pressure (220179), body temperature in Fahrenheit (223761), and respiratory rate (220210). Retrieve a subset of `chartevents.csv.gz` only containing these items for the patients in `icustays_tble` as a tibble `chartevents_tble`.
+1. We are interested in the vitals for ICU patients: heart rate (220045), mean non-invasive blood pressure (220181), systolic non-invasive blood pressure (220179), body temperature in Fahrenheit (223761), and respiratory rate (220210). Retrieve a subset of `chartevents.csv.gz` only containing these items for the patients in `icustays_tble` as a tibble `chartevents_tble`.  
+**Solution:** I used `read_csv` to import this file as a tibble and obtain 23,679,058 rows. The subset kept all the rows.
 ```{r}
-chartevents_tble <- 
-  read_csv("/mnt/mimiciv/1.0/icu/chartevents_filtered_itemid.csv.gz", lazy = T)
-#23679058
+chartevents_tble <-
+  read_csv("/mnt/mimiciv/1.0/icu/chartevents_filtered_itemid.csv.gz",
+           col_types = cols_only(subject_id = col_double(),
+                                 hadm_id = col_double(),
+                                 itemid = col_double(),
+                                 itemid = col_double(), 
+                                 charttime = col_datetime(), 
+                                 valuenum = col_double()),
+           lazy = TRUE)
 
+# item list we plan to use (but we do not need this anymore)
 choice2 <- c("220045", "220181", "220179", "223761", "220210")
 
-icustays_tble
+# only containing these items for the patients in icustays_tble
 chartevents_tble <- chartevents_tble %>%
-  filter(itemid %in% choice2) %>%
-  arrange(subject_id) %>%
-  semi_join(icustays_tble, by = "subject_id")
-
-#23679058 rows
-chartevents_tble
+  semi_join(icustays_tble, by = c("subject_id")) %>%
+  print(width = Inf)
 ```
 
 2. Further restrict `chartevents_tble` to the first vital measurement during the ICU stay. 
 ```{r}
-chartevents_tble <- chartevents_tble %>%
-  arrange(subject_id, charttime)  %>%
-  distinct(subject_id, itemid, .keep_all = TRUE)
-#263937 rows
-chartevents_tble
+if (file.exists("chartevents_tble.rds")) {
+  chartevents_tble <- read_rds("chartevents_tble")
+} else {
+  chartevents_tble <- chartevents_tble %>%
+    # add intime from icustays_tble to find the first lab measurement
+    left_join(select(icustays_tble, subject_id, intime), by = c("subject_id")) %>%
+    # only keep lab measurements after intime
+    filter(charttime >= intime) %>%
+    # sort charttime in ascending order by subject id and item id
+    group_by(subject_id, itemid) %>%
+    arrange(charttime, .by_group = TRUE) %>%
+    # only keep the first lab measurement by group
+    slice_head(n = 1) %>%
+    ungroup() %>%
+    print(width = Inf) %>%
+    write_rds("chartevents_tble.rds")
+}
 ```
 
 3. Summarize these vital measurements by appropriate numerics and graphics. 
@@ -363,19 +397,18 @@ icustays_tble
 admissions_tble
 patients_tble
 mimic_icu_cohort <- icustays_tble %>%
-  left_join(patients_tble, by = "subject_id") %>%
+  left_join(patients_tble, by = c("subject_id")) %>%
   filter(anchor_age > 18) %>%
-  left_join(admissions_tble, by = "subject_id") %>%
-  left_join(patients_tble, by = "subject_id") %>%
-  left_join(labevents_tble, by = "subject_id") %>%
-  left_join(chartevents_tble, by = "subject_id") %>%
+  left_join(admissions_tble, by = c("subject_id")) %>%
+  left_join(labevents_tble, by = c("subject_id")) %>%
+  left_join(chartevents_tble, by = c("subject_id")) %>%
   mutate(day_mort = as.Date(deathtime) - as.Date(admittime)) %>%
   mutate(thirty_day_mort = if_else(is.na(day_mort) == 1, 0, if_else(day_mort <= 30, 1, 0)))
 
 mimic_icu_cohort2 <- mimic_icu_cohort %>%
   filter(day_mort>28, day_mort<32) %>%
   select(deathtime, day_mort, thirty_day_mort)
-mimic_icu_cohort2
+head(mimic_icu_cohort)
 ```
 
 ## Q8. Exploratory data analysis (EDA)
