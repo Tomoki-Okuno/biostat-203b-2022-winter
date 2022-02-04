@@ -25,7 +25,7 @@ os <- sessionInfo()$running
 if (str_detect(os, "Linux")) {
   mimic_path <- "/mnt/mimiciv/1.0"
 } else if (str_detect(os, "macOS")) {
-  mimic_path <- "/Users/huazhou/Documents/Box Sync/MIMIC/mimic-iv-1.0"
+  mimic_path <- "/Users/tomokiokuno/mimic-iv-1.0"
 }
 ```
 
@@ -46,13 +46,13 @@ For later questions, we stick to the tidyverse.
 
 **Solution:** I used `system.time` to measure run times for the three functions.
 ```{r}
-system.time(tmp_r <- read.csv("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
-system.time(tmp_t <- read_csv("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
-system.time(tmp_f <- fread("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
+system.time(tmp_r <- read.csv("/Users/tomokiokuno/mimic-iv-1.0/core/admissions.csv.gz"))
+system.time(tmp_t <- read_csv("/Users/tomokiokuno/mimic-iv-1.0/core/admissions.csv.gz"))
+system.time(tmp_f <- fread("/Users/tomokiokuno/mimic-iv-1.0/core/admissions.csv.gz"))
 ```
 Looking at user time, CPU time charged for the execution of user instructions, `fread` is the fastest function.
 
-Next, I used `str` to confirm data types for them. Apparently, there is difference in the (default) parsed data types. For instance, `read.csv` and `fread` read `subject_id` as integer while `read_csv` read this as numeric (double). Also, `read_csv` and `fread` imported the date and time as `POSIXct`, but `read.csv` imported as `factor`.
+Next, I used `str` to confirm data types for them. Apparently, there are differences in the (default) parsed data types. For instance, `read.csv` and `fread` read `subject_id` as `integer` while `read_csv` read this as  (double). Also, `read_csv` and `fread` imported the date and time as `POSIXct`, but `read.csv` imported as `factor`.
 ```{r}
 str(tmp_r)
 str(tmp_t)
@@ -67,7 +67,7 @@ str(tmp_f)
 system(
   str_c(
     "zcat < ", 
-    shQuote(str_c("/mnt/mimiciv/1.0/", "/icu/icustays.csv.gz")), 
+    shQuote(str_c("/Users/tomokiokuno/mimic-iv-1.0/", "/icu/icustays.csv.gz")), 
     " | head"
   ), 
   intern = TRUE
@@ -77,7 +77,8 @@ system(
 1. Import `icustatys.csv.gz` as a tibble `icustays_tble`.  
 **Solution:** I used `read_csv` to import this file as a tibble. The total number of rows is 76,540.
 ```{r}
-icustays_tble <- read_csv("/mnt/mimiciv/1.0/icu/icustays.csv.gz")
+icustays_master <- read_csv("/Users/tomokiokuno/mimic-iv-1.0/icu/icustays.csv.gz")
+icustays_tble <- icustays_master
 head(icustays_tble)
 ```
 
@@ -92,8 +93,8 @@ nrow(distinct(icustays_tble, subject_id))
 ```{r}
 icustays_tble <- icustays_tble %>%
   arrange(subject_id, intime)  %>%
-  distinct(subject_id, .keep_all = TRUE)
-head(icustays_tble)
+  distinct(subject_id, .keep_all = TRUE) %>%
+  print(width = Inf)
 ```
 
 ## Q3. `admission` data
@@ -108,13 +109,15 @@ system(
   ), 
   intern = TRUE
 )
+rm(chartevents_master)
 ```
 
 1. Import `admissions.csv.gz` as a tibble `admissions_tble`.  
 **Solution:** I used `read_csv` to import this file as a tibble.
 ```{r}
-admissions_tble <- read_csv("/mnt/mimiciv/1.0/core/admissions.csv.gz")
-head(admissions_tble)
+admissions_master <- read_csv("/Users/tomokiokuno/mimic-iv-1.0/core/admissions.csv.gz")
+admissions_tble <- admissions_master %>%
+  print(width = Inf)
 ```
 
 2. Let's only keep the admissions that have a match in `icustays_tble` according to `subject_id` and `hadm_id`.  
@@ -122,8 +125,8 @@ head(admissions_tble)
 ```{r}
 admissions_tble <- admissions_tble %>%
   arrange(subject_id, hadm_id) %>%
-  semi_join(icustays_tble, by = c("subject_id", "hadm_id")) 
-head(admissions_tble)
+  semi_join(icustays_tble, by = c("subject_id", "hadm_id")) %>%
+  print(width = Inf)
 ```
 
 3. Summarize the following variables by graphics.   
@@ -184,10 +187,11 @@ system(
 1. Import `patients.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/core/patients/>) as a tibble `patients_tble` and only keep the patients who have a match in `icustays_tble` (according to `subject_id`).  
 **Solution:** I used `read_csv` to import this file as a tibble. After matching, the subset contains 53,150 rows.
 ```{r}
-patients_tble <- read_csv("/mnt/mimiciv/1.0/core/patients.csv.gz")
+patients_master <- read_csv("/Users/tomokiokuno/mimic-iv-1.0/core/patients.csv.gz")
+patients_tble <- patients_master
 patients_tble <- patients_tble %>%
-  semi_join(icustays_tble, by = c("subject_id"))
-head(patients_tble)
+  semi_join(icustays_tble, by = c("subject_id")) %>%
+  print(width = Inf)
 ```
 
 2. Summarize variables `gender` and `anchor_age`, and explain any patterns you see.  
@@ -201,11 +205,13 @@ The histogram indicates:
 ```{r}
 ggplot(data = patients_tble, mapping = aes(x = gender, y = anchor_age)) + 
   stat_boxplot(geom = "errorbar", width = 0.2) + 
-  geom_boxplot() +
-  
-  ggplot(data = patients_tble) + 
+  geom_boxplot()  +
+  labs(title = "Distribution for patient’s age by gender (Boxplot)") +
+  labs(y = "Patient’s age")
+
+ggplot(data = patients_tble) + 
   geom_bar(mapping = aes(x = anchor_age, fill = gender)) +
-  labs(title = "Histogram for patient’s age by gender") +
+  labs(title = "Distribution for patient’s age by gender (Histogram)") +
   labs(x = "Patient’s age")
 max(patients_tble$anchor_age)
 ```
@@ -217,7 +223,7 @@ max(patients_tble$anchor_age)
 system(
   str_c(
     "zcat < ", 
-    shQuote(str_c(mimic_path, "/hosp/labevents_filtered_itemid.csv.gz")), 
+    shQuote(str_c(mimic_path, "/hosp/labevents.csv.gz")), 
     " | head"
   ), 
   intern = TRUE
@@ -254,15 +260,17 @@ Hint: `labevents.csv.gz` is a data file too big to be read in by the `read_csv` 
 
 **Solution:** I used `read_csv` to import this file as a tibble and obtain 30,198,826 rows. The subset after narrowing has 16,698,462 rows.
 ```{r}
-labevents_tble <- 
-  read_csv("/mnt/mimiciv/1.0/hosp/labevents_filtered_itemid.csv.gz", 
+labevents_master <- 
+  read_csv("/Users/tomokiokuno/mimic-iv-1.0/hosp/labevents_filtered_itemid.csv.gz", 
            col_types = cols_only(subject_id = col_double(), 
                                  itemid = col_double(), 
                                  charttime = col_datetime(), 
                                  valuenum = col_double()),
            lazy = TRUE)
 
-d_labitems_tble <- read_csv("/mnt/mimiciv/1.0/hosp/d_labitems.csv.gz")
+labevents_tble <- labevents_master
+
+d_labitems_tble <- read_csv("/Users/tomokiokuno/mimic-iv-1.0/hosp/d_labitems.csv.gz")
 
 # item list we plan to use (but we do not need this anymore)
 choice_lab <- c("50912", "50971", "50983", "50902", "50882", 
@@ -279,8 +287,6 @@ labevents_tble <- labevents_tble %>%
 3. Further restrict `labevents_tble` to the first lab measurement during the ICU stay. 
 **Solution:** The following code made `labevents_tble` 523252 rows.
 ```{r}
-file.remove("labevents_tble.rds")
-
 if (file.exists("labevents_tble.rds")) {
   labevents_tble <- read_rds("labevents_tble.rds")
 } else {
@@ -305,23 +311,20 @@ if (file.exists("labevents_tble.rds")) {
 ```
 
 4. Summarize the lab measurements by appropriate numerics and graphics.  
-I am gonna add numeric
+**Solution:**
 ```{r}
-labevents_tble %>%
-  group_by(label) %>%
-  summarise (n = n()) %>%
-  mutate(freq = n / sum(n)) 
+# numerical statistics
+summary(labevents_tble[-1])
 
-ggplot(data = labevents_tble) + 
-  geom_bar(mapping = aes(x = factor(itemid))) +
-  labs(title = "Bar plot for lab item") +
-  labs(x = "Item")
-ggplot(data = labevents_tble) + 
-  geom_bar(mapping = aes(x = factor(label))) +
-  labs(title = "Bar plot for lab item") +
-  labs(x = "Item")
+# graphical statistics
+labevents_tble %>% tidyr::gather("item", "value", 2:11) %>% 
+  ggplot() + 
+  geom_boxplot(mapping = aes(x = item, y = value), outlier.shape = NA) +
+  ylim(0, 250) +
+  labs(title = "Distribution for lab item") +
+  labs(x = "Lab item") +
+  coord_flip() 
 ```
-
 
 ## Q6. Vitals from charted events
 
@@ -349,8 +352,8 @@ system(
 1. We are interested in the vitals for ICU patients: heart rate (220045), mean non-invasive blood pressure (220181), systolic non-invasive blood pressure (220179), body temperature in Fahrenheit (223761), and respiratory rate (220210). Retrieve a subset of `chartevents.csv.gz` only containing these items for the patients in `icustays_tble` as a tibble `chartevents_tble`.  
 **Solution:** I used `read_csv` to import this file as a tibble and obtain 23,679,058 rows. The subset kept all the rows.
 ```{r}
-chartevents_tble <-
-  read_csv("/mnt/mimiciv/1.0/icu/chartevents_filtered_itemid.csv.gz",
+chartevents_master <-
+  read_csv("/Users/tomokiokuno/mimic-iv-1.0/icu/chartevents_filtered_itemid.csv.gz",
            col_types = cols_only(subject_id = col_double(),
                                  hadm_id = col_double(),
                                  itemid = col_double(),
@@ -359,7 +362,9 @@ chartevents_tble <-
                                  valuenum = col_double()),
            lazy = TRUE)
 
-d_items_tble <- read_csv("/mnt/mimiciv/1.0/icu/d_items.csv.gz")
+chartevents_tble <- chartevents_master
+
+d_items_tble <- read_csv("/Users/tomokiokuno/mimic-iv-1.0/icu/d_items.csv.gz")
 
 # item list we plan to use (but we do not need this anymore)
 choice2 <- c("220045", "220181", "220179", "223761", "220210")
@@ -374,8 +379,6 @@ chartevents_tble <- chartevents_tble %>%
 
 2. Further restrict `chartevents_tble` to the first vital measurement during the ICU stay. 
 ```{r}
-file.remove("chartevents_tble.rds")
-
 if (file.exists("chartevents_tble.rds")) {
   chartevents_tble <- read_rds("chartevents_tble.rds")
 } else {
@@ -401,9 +404,17 @@ if (file.exists("chartevents_tble.rds")) {
 
 3. Summarize these vital measurements by appropriate numerics and graphics. 
 ```{r}
-chartevents_tble
-ggplot(data = chartevents_tble) + 
-  geom_bar(mapping = aes(x = factor(itemid)))
+# numerical statistics
+summary(chartevents_tble[-1])
+
+# graphical statistics
+chartevents_tble %>% tidyr::gather("item", "value", 2:6) %>% 
+  ggplot() + 
+  geom_boxplot(mapping = aes(x = item, y = value), outlier.shape = NA) +
+  ylim(0, 200) +
+  labs(title = "Distribution for vital item") +
+  labs(x = "Vital item") +
+  coord_flip() 
 ```
 
 ## Q7. Putting things together
@@ -430,16 +441,18 @@ mimic_icu_cohort <- icustays_tble %>%
   filter(age_hadm > 18) %>%
   left_join(labevents_tble, by = c("subject_id")) %>%
   left_join(chartevents_tble, by = c("subject_id")) %>%
-  # create thirty_day_mort that has 1 if a patient died within 30 days and 0 if not
+  # create thirty_day_mort that has 1 if a patient died <= 30 days and 0 if not
   mutate(thirty_day_mort = 
            ifelse(is.na(deathtime), Inf, 
-                  ifelse(as.Date(deathtime) - as.Date(admittime) <= 30, 1,
-                         0))) %>%
+                  ifelse(as.Date(deathtime) - as.Date(admittime) <= 30, "Yes",
+                         "No"))) %>%
   print(width = Inf) %>%
   write_rds("mimic_icu_cohort.rds")
-
+mimic_icu_cohort
 nrow(mimic_icu_cohort)
-table(mimic_icu_cohort$thirty_day_mort)
+table(mimic_icu_cohort$thirty_day_mort) 
+test
+
 ```
 
 ## Q8. Exploratory data analysis (EDA)
@@ -454,12 +467,43 @@ Summarize following information using appropriate numerics or graphs.
 
 - `thirty_day_mort` vs first ICU unit
 ```{r}
-mimic_icu_cohort %>%
-  group_by(thirty_day_mort) %>%
-  gather(ethnicity, language) %>%
-  summarise (n = n()) %>%
-  mutate(freq = n / sum(n))
+summary(mimic_icu_cohort[-1])
+table(mimic_icu_cohort$thirty_day_mort)
 
 ggplot(data = mimic_icu_cohort) + 
-  geom_bar(mapping = aes(x = ethnicity, fill = thirty_day_mort))
+  geom_bar(mapping = aes(x = thirty_day_mort, fill = ethnicity), position = "fill") +
+  labs(y = "percent") +
+  scale_x_discrete(limit = c("No", "Yes")) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title = "Title Xxxx") +
+  labs(x = "Death <= 30 days") +
+  coord_flip() 
+
+ggplot(data = mimic_icu_cohort) + 
+  geom_bar(mapping = aes(x = thirty_day_mort, fill = language), position = "fill") +
+  labs(y = "percent") +
+  scale_x_discrete(limit = c("No", "Yes")) +
+  scale_y_continuous(labels = scales::percent) +
+  coord_flip() 
+
+ggplot(data = mimic_icu_cohort) + 
+  geom_bar(mapping = aes(x = thirty_day_mort, fill = marital_status), position = "fill") +
+  labs(y = "percent") +
+  scale_x_discrete(limit = c("No", "Yes")) +
+  scale_y_continuous(labels = scales::percent) +
+  coord_flip() 
+
+ggplot(data = mimic_icu_cohort) + 
+  geom_bar(mapping = aes(x = thirty_day_mort, fill = gender), position = "fill") +
+  labs(y = "percent") +
+  scale_x_discrete(limit = c("No", "Yes")) +
+  scale_y_continuous(labels = scales::percent) +
+  coord_flip() 
+
+ggplot(data = mimic_icu_cohort) + 
+  geom_bar(mapping = aes(x = thirty_day_mort, fill = age_hadm), position = "fill") +
+  labs(y = "percent") +
+  scale_x_discrete(limit = c("No", "Yes")) +
+  scale_y_continuous(labels = scales::percent) +
+  coord_flip() 
 ```
