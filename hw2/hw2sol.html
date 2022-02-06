@@ -242,7 +242,7 @@ system(str_c(&quot;tree -s -L 2 &quot;, shQuote(mimic_path)), intern = TRUE)</co
 <p><strong>Solution:</strong> I used <code>system.time</code> to measure run times for the three functions. Looking at user time, CPU time charged for the execution of user instructions, <code>fread</code> was the fastest function.</p>
 <pre class="r"><code>system.time(tmp_r &lt;- read.csv(str_c(mimic_path,&quot;/core/admissions.csv.gz&quot;)))</code></pre>
 <pre><code>##    user  system elapsed 
-##  13.401   0.403  14.202</code></pre>
+##  15.300   0.615  26.753</code></pre>
 <pre class="r"><code>system.time(tmp_t &lt;- read_csv(str_c(mimic_path,&quot;/core/admissions.csv.gz&quot;)))</code></pre>
 <pre><code>## Rows: 523740 Columns: 15</code></pre>
 <pre><code>## ── Column specification ────────────────────────────────────────────────────────
@@ -254,10 +254,10 @@ system(str_c(&quot;tree -s -L 2 &quot;, shQuote(mimic_path)), intern = TRUE)</co
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 <pre><code>##    user  system elapsed 
-##   4.335   0.909   2.701</code></pre>
+##   4.317   0.900   4.115</code></pre>
 <pre class="r"><code>system.time(tmp_f &lt;- fread(str_c(mimic_path,&quot;/core/admissions.csv.gz&quot;)))</code></pre>
 <pre><code>##    user  system elapsed 
-##   1.350   0.522   1.978</code></pre>
+##   1.320   0.515   2.130</code></pre>
 <p><strong>Solution:</strong> Next, I used <code>str</code> to confirm data types for the three functions. Obviously, there are differences between them. For instance, both <code>read.csv</code> and <code>fread</code> read <code>subject_id</code> as <code>integer</code> while <code>read_csv</code> read this as <code>double (numeric)</code>. Also, both <code>read_csv</code> and <code>fread</code> imported the time as <code>POSIXct</code>, but <code>read.csv</code> imported as <code>charactor</code>.</p>
 <pre class="r"><code>str(tmp_r)</code></pre>
 <pre><code>## &#39;data.frame&#39;:    523740 obs. of  15 variables:
