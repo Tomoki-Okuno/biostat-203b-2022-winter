@@ -629,7 +629,7 @@ mimic_icu_cohort %>%
   labs(title = "Distributions for first lab measurements by 30 day mortality")
 ```
 
-**Brief comment:** For Bicarbonate and Creatinine, there appear to be large differences between the two categories because one of the medians is closer to the edge of the other box. Also, it may be worth testing whether there are statistically significant differences for glucose and white blood cells as well.
+**Brief comment:** For Bicarbonate and Creatinine, there appear to be big differences between the two categories because one of the medians is closer to the edge of the other box. Also, it may be worth testing whether there are statistically significant differences for glucose and white blood cells as well.
 
 - `thirty_day_mort` vs first vital measurements
 
@@ -686,4 +686,4 @@ mimic_icu_cohort %>%
   labs(x = "30 day mortality", fill ="First ICU unit")
 ```
 
-**Brief comment:** The proportion of CVICU for patients who died within 30 days is 14 points smaller than that of those who did not. On the other hand, for MICU, the proportion of patients who died within 30 days is 9 points higher. Other than that, there appears to be little difference.
+**Brief comment:** The proportion of CVICU for patients who died within 30 days is 14 points lower than that of those who did not. On the other hand, for MICU, the proportion of patients who died within 30 days is 9 points higher. Other than that, there appears to be little difference.
