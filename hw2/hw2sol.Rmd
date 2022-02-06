@@ -181,7 +181,7 @@ ggplot(data = admissions_tble) +
   labs(x = "Admission hour")
 ```
 
-**Solution:** From the above graph, 0 AM and 7 AM appear to be unusual since the frequency is higher than other times despite a late night and an early morning.
+**Solution:** From the above graph, 0 AM and 7 AM appear to be unusual since the frequencies are higher than other times despite a late night and an early morning.
 
 
 ## Q4. `patients` data
@@ -336,7 +336,7 @@ if (file.exists("labevents_tble.rds")) {
 
 4. Summarize the lab measurements by appropriate numerics and graphics.
 
-**Solution:** For numeric, I used `summary` to output summary statistics, implying that some appear to have extreme values. Taking this into account, for graphics, I removed values below the 2.5th and above the 97.5th percentile and then displayed these distributions in the following box plots. The distributions for creatinine, glucose, and white blood cells are far from to normal distribution, unlike the others.
+**Solution:** For numeric, I used `summary` to output summary statistics, implying that some appear to have extreme values. Taking this into account, for graphics, I removed values below the 2.5th and above the 97.5th percentile and then displayed these distributions in the following box plots. The distributions for creatinine, glucose, and white blood cells are far from normal distribution, unlike the others.
 ```{r}
 # numerical summary
 summary(labevents_tble[-1])
