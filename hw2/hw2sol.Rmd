@@ -316,10 +316,10 @@ if (file.exists("labevents_tble.rds")) {
 } else {
   labevents_tble <- labevents_tble %>%
     # add intime from icustays_tble to find the first lab measurement
-    left_join(select(icustays_tble, subject_id, intime), 
+    left_join(select(icustays_tble, subject_id, intime, outtime), 
               by = c("subject_id")) %>%
     # keep only lab measurements after intime
-    filter(charttime >= intime) %>%
+    filter(charttime >= intime, charttime <= outtime) %>%
     # sort charttime in ascending order by subject_id and item_id
     group_by(subject_id, itemid) %>%
     arrange(charttime, .by_group = TRUE) %>%
@@ -327,7 +327,7 @@ if (file.exists("labevents_tble.rds")) {
     slice_head(n = 1) %>%
     # keep only 11 columns and spread label and valuenum
     ungroup() %>%
-    select(-c(itemid, charttime, intime)) %>%
+    select(-c(itemid, charttime, intime, outtime)) %>%
     pivot_wider(names_from = label, values_from = valuenum) %>%
     print(width = Inf) %>%
     write_rds("labevents_tble.rds")
@@ -418,10 +418,10 @@ if (file.exists("chartevents_tble.rds")) {
 } else {
   chartevents_tble <- chartevents_tble %>%
     # add intime from icustays_tble to find the first vital measurement
-    left_join(select(icustays_tble, subject_id, intime), 
+    left_join(select(icustays_tble, subject_id, intime, outtime), 
               by = c("subject_id")) %>%
     # keep only vital measurements after intime
-    filter(charttime >= intime) %>%
+    filter(charttime >= intime, charttime <= outtime) %>%
     # sort charttime in ascending order by subject_id and item_id
     group_by(subject_id, itemid) %>%
     arrange(charttime, .by_group = TRUE) %>%
