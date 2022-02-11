@@ -181,7 +181,7 @@ ggplot(data = admissions_tble) +
   labs(x = "Admission hour")
 ```
 
-**Solution:** From the above graph, 0 AM and 7 AM appear to be unusual since the frequencies are higher than other times despite a late night and an early morning.
+**Solution:** From the above graph, 0 AM and 7 AM appear to be unusual since the frequencies are higher than other times despite a late night and an early morning. That may be caused by some operation of the hospital.
 
 
 ## Q4. `patients` data
@@ -229,13 +229,11 @@ p1 <- ggplot(data = patients_tble, mapping = aes(x = gender, y = anchor_age)) +
   geom_boxplot() +
   labs(title = "Distributions for anchor age by gender") +
   labs(x = "Gender", y = "Anchor age (years)")
-
 p2 <- ggplot(data = patients_tble) + 
   geom_bar(mapping = aes(x = anchor_age, fill = gender)) +
   labs(title = "") +
   labs(x = "Anchor age (years)", fill = "Gender")
 max(patients_tble$anchor_age)
-
 gridExtra::grid.arrange(p1, p2, nrow = 1)
 ```
 
@@ -290,13 +288,10 @@ labevents_master <-
                                  charttime = col_datetime(), 
                                  valuenum = col_double()),
            lazy = TRUE)
-
 d_labitems_tble <- read_csv(str_c(mimic_path,"/hosp/d_labitems.csv.gz"))
-
 # item list we plan to use (but we do not need this anymore)
 choice_lab <- c("50912", "50971", "50983", "50902", "50882", 
                 "51221", "51301", "50931", "50960", "50893")
-
 labevents_tble <- labevents_master
 labevents_tble <- labevents_tble %>%
   arrange(subject_id, itemid) %>%
@@ -309,17 +304,17 @@ labevents_tble <- labevents_tble %>%
 
 3. Further restrict `labevents_tble` to the first lab measurement during the ICU stay.
 
-**Solution:** The following code made `labevents_tble` 52,544 rows. I used `select` to keep `subject_id` and ten lab measurements, or only 11 columns.
+**Solution:** The following code made `labevents_tble` 51,623 rows. I used `select` to keep `subject_id` and ten lab measurements, or only 11 columns.
 ```{r}
 if (file.exists("labevents_tble.rds")) {
   labevents_tble <- read_rds("labevents_tble.rds")
 } else {
   labevents_tble <- labevents_tble %>%
     # add intime from icustays_tble to find the first lab measurement
-    left_join(select(icustays_tble, subject_id, intime), 
+    left_join(select(icustays_tble, subject_id, intime, outtime), 
               by = c("subject_id")) %>%
     # keep only lab measurements after intime
-    filter(charttime >= intime) %>%
+    filter(charttime >= intime, charttime <= outtime) %>%
     # sort charttime in ascending order by subject_id and item_id
     group_by(subject_id, itemid) %>%
     arrange(charttime, .by_group = TRUE) %>%
@@ -327,8 +322,10 @@ if (file.exists("labevents_tble.rds")) {
     slice_head(n = 1) %>%
     # keep only 11 columns and spread label and valuenum
     ungroup() %>%
-    select(-c(itemid, charttime, intime)) %>%
+    select(-c(itemid, charttime, intime, outtime)) %>%
     pivot_wider(names_from = label, values_from = valuenum) %>%
+    # avoid space in column name
+    rename(Calcium = "Calcium, Total", WBC = "White Blood Cells") %>%
     print(width = Inf) %>%
     write_rds("labevents_tble.rds")
 }
@@ -336,11 +333,10 @@ if (file.exists("labevents_tble.rds")) {
 
 4. Summarize the lab measurements by appropriate numerics and graphics.
 
-**Solution:** For numeric, I used `summary` to output summary statistics, implying that some appear to have extreme values. Taking this into account, for graphics, I removed values below the 2.5th and above the 97.5th percentile and then displayed these distributions in the following box plots. The distributions for creatinine, glucose, and white blood cells are far from normal distribution, unlike the others.
+**Solution:** For numeric, I used `summary` to output summary statistics, implying that some appear to have missing ant extreme values. Taking this into account, for graphics, I removed values below the 2.5th and above the 97.5th percentile and then displayed these distributions in the following box plots. The distributions for Creatinine, Glucose, and White Blood Cells (WBC) are far from normal distribution, unlike the others.
 ```{r}
 # numerical summary
 summary(labevents_tble[-1])
-
 # graphical summary
 labevents_tble %>%
   select(2:11) %>%
@@ -393,12 +389,9 @@ chartevents_master <-
                                  charttime = col_datetime(), 
                                  valuenum = col_double()),
            lazy = TRUE)
-
 d_items_tble <- read_csv(str_c(mimic_path,"/icu/d_items.csv.gz"))
-
 # item list we plan to use (but we do not need this anymore)
 choice2 <- c("220045", "220181", "220179", "223761", "220210")
-
 chartevents_tble <- chartevents_master
 chartevents_tble <- chartevents_tble %>%
   # only containing these items for the patients in icustays_tble
@@ -410,7 +403,7 @@ chartevents_tble <- chartevents_tble %>%
 
 2. Further restrict `chartevents_tble` to the first vital measurement during the ICU stay.
 
-**Solution:** I ran almost the same code as Q5-3 and obtained a tibble with 53,150 × 6, which consists of only `subject_id` and five vital measurements.
+**Solution:** I ran almost the same code as Q5-3 and obtained a tibble with 53,136 × 6, which consists of only `subject_id` and five vital measurements.
 ```{r}
 # file.remove("chartevents_tble.rds")
 if (file.exists("chartevents_tble.rds")) {
@@ -418,10 +411,10 @@ if (file.exists("chartevents_tble.rds")) {
 } else {
   chartevents_tble <- chartevents_tble %>%
     # add intime from icustays_tble to find the first vital measurement
-    left_join(select(icustays_tble, subject_id, intime), 
+    left_join(select(icustays_tble, subject_id, intime, outtime), 
               by = c("subject_id")) %>%
     # keep only vital measurements after intime
-    filter(charttime >= intime) %>%
+    filter(charttime >= intime, charttime <= outtime) %>%
     # sort charttime in ascending order by subject_id and item_id
     group_by(subject_id, itemid) %>%
     arrange(charttime, .by_group = TRUE) %>%
@@ -431,6 +424,11 @@ if (file.exists("chartevents_tble.rds")) {
     ungroup() %>%
     select(c(subject_id, label, valuenum)) %>%
     pivot_wider(names_from = label, values_from = valuenum) %>%
+    # avoid space in column name
+    rename(HR = "Heart Rate", RR = "Respiratory Rate", 
+           Mean_BP = "Non Invasive Blood Pressure systolic",
+           Systolic_BP = "Non Invasive Blood Pressure mean",
+           BT = "Temperature Fahrenheit") %>%
     print(width = Inf) %>%
     write_rds("chartevents_tble.rds")
 }
@@ -442,7 +440,6 @@ if (file.exists("chartevents_tble.rds")) {
 ```{r}
 # numerical summary
 summary(chartevents_tble[-1])
-
 # graphical summary
 chartevents_tble %>%
   select(2:6) %>%
@@ -481,8 +478,8 @@ if (file.exists("mimic_icu_cohort.rds")) {
   mimic_icu_cohort <- read_rds("mimic_icu_cohort.rds")
 } else {
   mimic_icu_cohort <- icustays_tble %>%
-    left_join(patients_tble, by = c("subject_id")) %>%
     left_join(admissions_tble, by = c("subject_id", "hadm_id")) %>%
+    left_join(patients_tble, by = c("subject_id")) %>%
     left_join(labevents_tble, by = c("subject_id")) %>%
     left_join(chartevents_tble, by = c("subject_id")) %>%
     # compute age at admission
@@ -522,7 +519,8 @@ mimic_icu_cohort %>%
            position = "fill") +
   scale_y_continuous(labels = scales::percent) +
   labs(x = "30 day mortality", y = "percent") +
-  labs(title = "30 day mortality vs ethnicity")
+  scale_x_discrete(limits = ) +
+  labs(title = "30 day mortality vs ethnicity") 
 ```
 
 - `thirty_day_mort` vs language, insurance, marital_status, and gender
@@ -543,7 +541,6 @@ round(prop.table(table(mimic_icu_cohort$marital_status,
                        mimic_icu_cohort$thirty_day_mort) ,2), 2)
 round(prop.table(table(mimic_icu_cohort$gender, 
                        mimic_icu_cohort$thirty_day_mort) ,2), 2)
-
 # graphical information
 q1 <- mimic_icu_cohort %>%
   ggplot() +
@@ -552,7 +549,6 @@ q1 <- mimic_icu_cohort %>%
   scale_y_continuous(labels = scales::percent) +
   labs(x = "30 day mortality", y = "percent") +
   labs(title = "30 day mortality vs language") 
-
 q2 <- mimic_icu_cohort %>%
   ggplot() +
   geom_bar(mapping = aes(x = thirty_day_mort, fill = insurance), 
@@ -560,7 +556,6 @@ q2 <- mimic_icu_cohort %>%
   scale_y_continuous(labels = scales::percent) +
   labs(x = "30 day mortality", y = "percent") +
   labs(title = "30 day mortality vs insurance") 
-
 q3 <- subset(mimic_icu_cohort, !is.na(marital_status)) %>%
   ggplot() +
   geom_bar(mapping = aes(x = thirty_day_mort, fill = marital_status), 
@@ -568,7 +563,6 @@ q3 <- subset(mimic_icu_cohort, !is.na(marital_status)) %>%
   scale_y_continuous(labels = scales::percent) +
   labs(x = "30 day mortality", y = "percent") +
   labs(title = "30 day mortality vs marital status") 
-
 q4 <- mimic_icu_cohort %>%
   ggplot() +
   geom_bar(mapping = aes(x = thirty_day_mort, fill = gender), 
@@ -576,7 +570,6 @@ q4 <- mimic_icu_cohort %>%
   scale_y_continuous(labels = scales::percent) +
   labs(x = "30 day mortality", y = "percent") +
   labs(title = "30 day mortality vs gender")
-
 gridExtra::grid.arrange(q1, q2, q3, q4, nrow = 2)
 ```
 
@@ -586,7 +579,6 @@ gridExtra::grid.arrange(q1, q2, q3, q4, nrow = 2)
 ```{r}
 # numerical information
 tapply(mimic_icu_cohort$age_hadm, mimic_icu_cohort$thirty_day_mort, summary)
-
 # graphical information
 ggplot(data = mimic_icu_cohort) + 
   geom_boxplot(aes(x = thirty_day_mort, y = age_hadm)) +
@@ -614,7 +606,6 @@ mimic_icu_cohort %>%
             Max    =      max(value,       na.rm = TRUE), 
             Q1     = quantile(value, 0.25, na.rm = TRUE), 
             Q3     = quantile(value, 0.75, na.rm = TRUE))  
-
 # graphical summary
 mimic_icu_cohort %>%
   gather(27:36, key="key", value="value") %>%
@@ -650,7 +641,6 @@ mimic_icu_cohort %>%
             Max    =      max(value,       na.rm = TRUE), 
             Q1     = quantile(value, 0.25, na.rm = TRUE), 
             Q3     = quantile(value, 0.75, na.rm = TRUE))  
-
 # graphical summary
 mimic_icu_cohort %>%
   gather(37:41, key="key", value="value") %>%
@@ -666,7 +656,7 @@ mimic_icu_cohort %>%
          "Distributions for first vital measurements by 30 day mortality")
 ```
 
-**Brief comment:** The values for Heart Rate and Respiratory Rate tend to be relatively higher for patients who died within 30 days than those who did not. For the rest, no major differences can be seen.
+**Brief comment:** The values for Heart Rate (HR) and Respiratory Rate (RR) tend to be relatively higher for patients who died within 30 days than those who did not. For the rest, no major differences can be seen.
 
 - `thirty_day_mort` vs first ICU unit
 
