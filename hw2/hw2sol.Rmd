@@ -310,10 +310,10 @@ if (file.exists("labevents_tble.rds")) {
   labevents_tble <- read_rds("labevents_tble.rds")
 } else {
   labevents_tble <- labevents_tble %>%
-    # add intime from icustays_tble to find the first lab measurement
+    # add intime and outtime from icustays_tble to find the first lab measurement
     left_join(select(icustays_tble, subject_id, intime, outtime), 
               by = c("subject_id")) %>%
-    # keep only lab measurements after intime
+    # keep only lab measurements between intime and outtime
     filter(charttime >= intime, charttime <= outtime) %>%
     # sort charttime in ascending order by subject_id and item_id
     group_by(subject_id, itemid) %>%
@@ -410,10 +410,10 @@ if (file.exists("chartevents_tble.rds")) {
   chartevents_tble <- read_rds("chartevents_tble.rds")
 } else {
   chartevents_tble <- chartevents_tble %>%
-    # add intime from icustays_tble to find the first vital measurement
+    # add intime and outtime from icustays_tble to find the first vital measurement
     left_join(select(icustays_tble, subject_id, intime, outtime), 
               by = c("subject_id")) %>%
-    # keep only vital measurements after intime
+    # keep only vital measurements between intime and outtime
     filter(charttime >= intime, charttime <= outtime) %>%
     # sort charttime in ascending order by subject_id and item_id
     group_by(subject_id, itemid) %>%
