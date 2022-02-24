@@ -3,11 +3,10 @@ title: "Biostat 203B Homework 3"
 author: "Tomoki Okuno"
 subtitle: Due Feb 25 @ 11:59PM
 output:
-  # ioslides_presentation: default
-  html_document:
-    toc: true
+  html_document: 
+    toc: yes
     toc_depth: 4
-runtime: shiny
+  # ioslides_presentation: default
 ---
 
 Display machine information:
@@ -67,7 +66,7 @@ dbListTables(con)
 3. Connect to the `icustays` table.
 ```{r}
 # using yaml to make my outline clear ???
-shiny echo=F code folding ymthis option
+#shiny echo=F code folding ymthis option
 
 # full ICU stays table
 icustays_tble <- tbl(con, "icustays") %>%
@@ -206,7 +205,7 @@ chartevents_tble <- chartevents_tble %>%
 
 8. Put things together. This step is similar to Q7 of HW2. Using one chain of pipes `%>%` to perform following data wrangling steps: (i) start with the `icustays_tble` for the first ICU stay of each unique patient, (ii) merge in admissions and patients tables, (iii) keep adults only (age at admission >= 18), (iv) merge in the labevents and chartevents tables, (v) create an indicator for 30-day mortality, (vi) save the final tibble to an `icu_cohort.rds` R data file in the `mimiciv_shiny` folder.
 
-```{r}
+```{r warning = FALSE}
 # make a directory mimiciv_shiny
 if (!dir.exists("mimiciv_shiny")) {
   dir.create("mimiciv_shiny")
@@ -223,17 +222,18 @@ icu_cohort <- icustays_tble %>%
   left_join(labevents_tble, by = c("subject_id")) %>%
   left_join(chartevents_tble, by = c("subject_id")) %>%
   # (v) create an indicator for 30-day mortality
-  mutate(hadm_to_death =
-           ifelse(is.na(deathtime), Inf, 
-                  as.character(timestamp_diff(deathtime, admittime, DAY)))) %>%
-  mutate(thirty_day_mort = as.numeric(hadm_to_death) <= 30) %>%
+  # mutate(hadm_to_death =
+  #          ifelse(is.na(dod), Inf, DATE_DIFF(dod, admittime, DAY))) %>%
+  mutate(thirty_day_mort = 
+           ifelse(is.na(dod), FALSE,
+                                  DATE_DIFF(dod, admittime, DAY) <= 30)) %>%
   # (vi) save the final tibble to an `icu_cohort.rds` in `mimiciv_shiny`
   write_rds("mimiciv_shiny/icu_cohort.rds") %>%
   show_query() %>%
   print(width = Inf)
 
 icu_cohort2 <- icu_cohort %>%
-  select(admittime, deathtime, hadm_to_death, thirty_day_mort) %>%
+  select(admittime, deathtime, thirty_day_mort) %>%
   filter(thirty_day_mort == TRUE) %>%
   summarise(n=n()) %>%
   print(width = Inf)
@@ -249,73 +249,5 @@ rm(list = ls())
 
 Develop a Shiny app for exploring the ICU cohort data created in Q1. The app should reside in the `mimiciv_shiny` folder. The app should provide easy access to the graphical and numerical summaries of variables (demographics, lab measurements, vitals) in the ICU cohort.
 
-```{r}
-library(shiny)
-library(dplyr)
-library(ggplot2)
-library(datasets)
-
-data <- readRDS("mimiciv_shiny/icu_cohort.rds")
-data2 <- data.frame(data)
-# select variables I plan to use
-demo_var1 = c("ethnicity", "language", "insurance", "marital_status", "gender")
-demo_var2 = c("age_hadm")
-choice_lab2 = paste("lab", choice_lab, sep = "")
-choice_chart2 = paste("chart", choice_chart, sep = "")
-# keep only the columns to summarize on app
-data2 <- select(data2, demo_var1, demo_var2, 
-                choice_lab2, choice_chart2, "thirty_day_mort")
-```
-
-```{r, echo = TRUE, eval = FALSE, warning = FALSE}
-ui <- fluidPage(
-  titlePanel("Summaries of variables"),
-  sidebarLayout(
-    sidebarPanel(
-      selectInput("var", label = "Choose a variable",
-                  choice = colnames(data2[,-22]), selectize = FALSE)),
-    mainPanel(
-      h2("Summary of the variable"),
-      verbatimTextOutput("sum"),
-      plotOutput("box")
-    )
-  )
-)
-server <- function(input,output){
-  output$sum <- renderPrint({
-    if (input$var %in% demo_var1){
-      # proportion of categorical variables by indicator
-      round(prop.table(table(data2[,input$var], data2$thirty_day_mort) ,2), 2)
-    } else {
-      # summary statistics of numerical variables by indicator
-      tapply(data2[,input$var], data2$thirty_day_mort, summary)
-    }
-  })
-  output$box <- renderPlot({
-    if (input$var %in% demo_var1){
-      # barplot for categorical variables by indicator
-      ggplot(data2) +
-        geom_bar(mapping = aes_string(x = "thirty_day_mort", fill = input$var),
-                 position = "fill") +
-        scale_y_continuous(labels = scales::percent) +
-        labs(x = "30 day mortality", y = "percent") +
-        labs(title = "30 day mortality vs Selected variable")
-    } else {
-      # set bound to remove outliers
-      lowest = quantile(data2[,input$var], 0.025, na.rm = TRUE) 
-      highest = quantile(data2[,input$var], 0.975, na.rm = TRUE) 
-      # box plot for numerical variables by indicator
-      data2 %>%
-        ggplot(aes_string(x = "thirty_day_mort", y = input$var)) + 
-        geom_boxplot() +
-        coord_cartesian(ylim = c(lowest, highest)) + 
-        labs(title = "30 day mortality vs Selected variable") +
-        labs(x = "30 day mortality") +
-        labs(y = input$var)
-    }
-  })
-}
-
-# Run the application 
-shinyApp(ui = ui, server = server)
-```
+**solution:**
+XXXX.
