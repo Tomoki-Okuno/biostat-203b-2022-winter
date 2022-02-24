@@ -63,17 +63,14 @@ con
 dbListTables(con)
 ```
 
-3. Connect to the `icustays` table.
+3. Connect to the `icustays` table.  
 ```{r}
-# using yaml to make my outline clear ???
-#shiny echo=F code folding ymthis option
-
 # full ICU stays table
 icustays_tble <- tbl(con, "icustays") %>%
   show_query() %>%
   print(width = Inf)
 ```
-We only keep the first ICU stay. Following code is kind of a hack, using the `summarise_all(min)` function. It seems that `slice_min()`, `slice_head()`, `distinct(, .keep_all = TRUE)` don't work with `dbplyr`+`bigrquery` at the moment.
+We only keep the first ICU stay. Following code is kind of a hack, using the `summarise_all(min)` function. It seems that `slice_min()`, `slice_head()`, `distinct(, .keep_all = TRUE)` don't work with `dbplyr`+`bigrquery` at the moment.  
 ```{r}
 icustays_tble <- icustays_tble %>% 
   select(subject_id, intime) %>% 
@@ -86,12 +83,15 @@ icustays_tble <- icustays_tble %>%
 
 
 4. Connect to the `admissions` table and only keep the patients who have a match in `icustays_tble` (according to `subject_id` and `hadm_id`).
+
+**Solution:** Here is my code. 
 ```{r warning = FALSE}
 # full admissions table
 admissions_tble <- tbl(con, "admissions") %>%
   show_query() %>%
   print(width = Inf)
 
+# only keep the patients for the first ICU stay
 admissions_tble <- admissions_tble　%>%
   arrange(subject_id, hadm_id) %>%
   semi_join(icustays_tble, by = c("subject_id", "hadm_id")) %>%
@@ -100,12 +100,15 @@ admissions_tble <- admissions_tble　%>%
 ```
 
 5. Connect to the `patients` table and only keep the patients who have a match in `icustays_tble` (according to `subject_id`).
+
+**Solution:** Here is my code. 
 ```{r}
 # full patients table
 patients_tble <- tbl(con, "patients") %>%
   show_query() %>%
   print(width = Inf)
 
+# only keep the patients for the first ICU stay
 patients_tble <- patients_tble %>%
   arrange(subject_id) %>%
   semi_join(icustays_tble, by = c("subject_id")) %>%
@@ -113,8 +116,10 @@ patients_tble <- patients_tble %>%
   print(width = Inf)
 ```
 
-6. Connect to the `labevents` table and retrieve a subset that only contain subjects who appear in `icustays_tble` and the lab items listed in HW2. 
-```{r}
+6. Connect to the `labevents` table and retrieve a subset that only contain subjects who appear in `icustays_tble` and the lab items listed in HW2.
+
+**Solution:** Here is my code. I ended up not using labels on app (inputting them directly in `ui`).
+```{r warning = FALSE}
 # full labevents table
 labevents_tble <- tbl(con, "labevents") %>%
   show_query() %>%
@@ -138,7 +143,9 @@ labevents_tble <- labevents_tble %>%
   print(width = Inf)
 ```
 Only keep the first lab measurements during ICU stay and pivot lab items to become variables/columns.
-```{r}
+
+**Solution:** Here is my code. I avoided an error in BigQuery by adding `lab` at the beginning of the `itemid`, using `names_prefix`.
+```{r warning = FALSE}
 labevents_tble <- labevents_tble %>%
   # add intime & outtime from icustays_tble to find the first lab measurement
   left_join(select(icustays_tble, subject_id, intime, outtime), 
@@ -152,15 +159,17 @@ labevents_tble <- labevents_tble %>%
   # keep only 11 columns and spread label and valuenum
   ungroup() %>%
   select(c(subject_id, itemid, valuenum)) %>%
+  # spread valuenum by itemid 
   pivot_wider(names_from = itemid, values_from = valuenum, 
               names_prefix = "lab") %>%
-  # rename(Calcium = "Calcium, Total", WBC = "White Blood Cells") %>%
   show_query() %>%
   print(width = Inf) 
 ```
 
 7. Connect to `chartevents` table and retrieve a subset that only contain subjects who appear in `icustays_tble` and the chart events listed in HW2.
-```{r}
+
+**Solution:** Here is my code, based on the same idea as Q1-6.
+```{r warning = FALSE}
 # full chartevents table
 chartevents_tble <- tbl(con, "chartevents") %>%
   show_query() %>%
@@ -183,7 +192,9 @@ chartevents_tble <- chartevents_tble %>%
   print(width = Inf)
 ```
 Only keep the first chart events during ICU stay and pivot chart events to become variables/columns.
-```{r}
+
+**Solution:** Here is my code, based on the same idea as Q1-6.
+```{r warning = FALSE}
 chartevents_tble <- chartevents_tble %>%
   # add intime & outtime from icustays_tble to find the first vital measurement
   left_join(select(icustays_tble, subject_id, intime, outtime), 
@@ -197,6 +208,7 @@ chartevents_tble <- chartevents_tble %>%
   # restrict columns and spread label and valuenum
   ungroup() %>%
   select(c(subject_id, itemid, valuenum)) %>%
+  # spread valuenum by itemid 
   pivot_wider(names_from = itemid, values_from = valuenum, 
               names_prefix = "chart") %>%
   show_query() %>%
@@ -205,6 +217,10 @@ chartevents_tble <- chartevents_tble %>%
 
 8. Put things together. This step is similar to Q7 of HW2. Using one chain of pipes `%>%` to perform following data wrangling steps: (i) start with the `icustays_tble` for the first ICU stay of each unique patient, (ii) merge in admissions and patients tables, (iii) keep adults only (age at admission >= 18), (iv) merge in the labevents and chartevents tables, (v) create an indicator for 30-day mortality, (vi) save the final tibble to an `icu_cohort.rds` R data file in the `mimiciv_shiny` folder.
 
+**Solution:** Here is my code. The difference from HW2 is:
+
+- age at admission >= 18 instead of >18
+- using `dod` instead of `deathtime` due to limitations in BigQuery
 ```{r warning = FALSE}
 # make a directory mimiciv_shiny
 if (!dir.exists("mimiciv_shiny")) {
@@ -232,10 +248,11 @@ icu_cohort <- icustays_tble %>%
   show_query() %>%
   print(width = Inf)
 
-icu_cohort2 <- icu_cohort %>%
-  select(admittime, deathtime, thirty_day_mort) %>%
-  filter(thirty_day_mort == TRUE) %>%
-  summarise(n=n()) %>%
+# check if thirty_day_mort works correctly
+icu_cohort %>%
+  select(admittime, dod, thirty_day_mort) %>%
+  na.exclude %>%
+    filter(thirty_day_mort == FALSE, !is.na(dod)) %>%
   print(width = Inf)
 ```
 
@@ -249,5 +266,4 @@ rm(list = ls())
 
 Develop a Shiny app for exploring the ICU cohort data created in Q1. The app should reside in the `mimiciv_shiny` folder. The app should provide easy access to the graphical and numerical summaries of variables (demographics, lab measurements, vitals) in the ICU cohort.
 
-**solution:**
-XXXX.
+**Solution:** My app (app.R) was resided in the `mimiciv_shiny` folder. I made two types of summaries: using 30-day mortality as an indicator (like HW2) and not.

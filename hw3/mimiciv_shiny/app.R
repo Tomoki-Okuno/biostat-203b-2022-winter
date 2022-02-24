@@ -4,6 +4,7 @@ library(ggplot2)
 library(datasets)
 
 # import icu_cohort data as a tibble
+# setwd("hw3/mimiciv_shiny")
 data <- read_rds("icu_cohort.rds")
 data <- collect(data)
 
@@ -20,7 +21,7 @@ choice_chart <- c(220045, 220181, 220179, 223761, 220210)
 choice_chart = paste("chart", choice_chart, sep = "")
 
 # keep only the columns to summarize on app
-data <- select(data, demo_var1, demo_var2, 
+data <- data %>% select(demo_var1, demo_var2, 
                choice_lab, choice_chart, "thirty_day_mort")
 
 ui <- fluidPage(
@@ -119,11 +120,12 @@ server <- function(input,output){
     if (input$var %in% demo_var1){
       if(input$indicator == 0){
         # graphical summary of categorical variables
-        ggplot(data) +
+        data %>%
+          ggplot() +
           geom_bar(mapping = 
                      aes_string(x = input$var, y = "..prop..", group = 1)) +
           labs(y = "percent") +
-          labs(title = "Proportion for selected variable") +
+          labs(title = "Proportion for the selected variable") +
           coord_flip() 
       } else {
         # graphical summary of categorical variables by indicator
@@ -135,8 +137,8 @@ server <- function(input,output){
           labs(y = "percent") +
           scale_y_continuous(labels = scales::percent) +
           labs(title = 
-                 "Proportion for selected variable by 30 day mortality") +
-          labs(x = "30 day mortality")
+                 "Proportion for the selected variable by 30-day mortality") +
+          labs(x = "30-day mortality")
       }
     } else {
       if(input$indicator == 0){
@@ -146,7 +148,7 @@ server <- function(input,output){
           na.omit() %>% 
           ggplot(aes_string(x = input$var)) +
           geom_boxplot() +
-          labs(title = "Distribution for selected variable") +
+          labs(title = "Distribution for the selected variable") +
           labs(x = input$var) +
           theme(axis.title.y = element_blank(),
                 axis.text.y = element_blank(),
@@ -161,8 +163,8 @@ server <- function(input,output){
           ggplot(mapping = aes_string(x = "thirty_day_mort", y = input$var)) +
           geom_boxplot() +
           labs(title = 
-                 "Distribution for selected variable by 30 day mortality") +
-          labs(x = "30 day mortality") +
+                 "Distribution for selected variable by 30-day mortality") +
+          labs(x = "30-day mortality") +
           coord_flip() 
       }
     }

@@ -254,10 +254,7 @@ con</code></pre>
 <ol start="3" style="list-style-type: decimal">
 <li>Connect to the <code>icustays</code> table.</li>
 </ol>
-<pre class="r"><code># using yaml to make my outline clear ???
-#shiny echo=F code folding ymthis option
-
-# full ICU stays table
+<pre class="r"><code># full ICU stays table
 icustays_tble &lt;- tbl(con, &quot;icustays&quot;) %&gt;%
   show_query() %&gt;%
   print(width = Inf)</code></pre>
@@ -341,6 +338,7 @@ icustays_tble &lt;- tbl(con, &quot;icustays&quot;) %&gt;%
 <ol start="4" style="list-style-type: decimal">
 <li>Connect to the <code>admissions</code> table and only keep the patients who have a match in <code>icustays_tble</code> (according to <code>subject_id</code> and <code>hadm_id</code>).</li>
 </ol>
+<p><strong>Solution:</strong> Here is my code.</p>
 <pre class="r"><code># full admissions table
 admissions_tble &lt;- tbl(con, &quot;admissions&quot;) %&gt;%
   show_query() %&gt;%
@@ -399,7 +397,8 @@ admissions_tble &lt;- tbl(con, &quot;admissions&quot;) %&gt;%
 ##  9 NA                           0
 ## 10 NA                           0
 ## # … with more rows</code></pre>
-<pre class="r"><code>admissions_tble &lt;- admissions_tble　%&gt;%
+<pre class="r"><code># only keep the patients for the first ICU stay
+admissions_tble &lt;- admissions_tble　%&gt;%
   arrange(subject_id, hadm_id) %&gt;%
   semi_join(icustays_tble, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;%
   show_query() %&gt;%
@@ -473,6 +472,7 @@ admissions_tble &lt;- tbl(con, &quot;admissions&quot;) %&gt;%
 <ol start="5" style="list-style-type: decimal">
 <li>Connect to the <code>patients</code> table and only keep the patients who have a match in <code>icustays_tble</code> (according to <code>subject_id</code>).</li>
 </ol>
+<p><strong>Solution:</strong> Here is my code.</p>
 <pre class="r"><code># full patients table
 patients_tble &lt;- tbl(con, &quot;patients&quot;) %&gt;%
   show_query() %&gt;%
@@ -495,7 +495,8 @@ patients_tble &lt;- tbl(con, &quot;patients&quot;) %&gt;%
 ##  9   10999598 M               0        2110 2008 - 2010       NA    
 ## 10   11024137 F               0        2110 2008 - 2010       NA    
 ## # … with more rows</code></pre>
-<pre class="r"><code>patients_tble &lt;- patients_tble %&gt;%
+<pre class="r"><code># only keep the patients for the first ICU stay
+patients_tble &lt;- patients_tble %&gt;%
   arrange(subject_id) %&gt;%
   semi_join(icustays_tble, by = c(&quot;subject_id&quot;)) %&gt;%
   show_query() %&gt;%
@@ -537,6 +538,7 @@ patients_tble &lt;- tbl(con, &quot;patients&quot;) %&gt;%
 <ol start="6" style="list-style-type: decimal">
 <li>Connect to the <code>labevents</code> table and retrieve a subset that only contain subjects who appear in <code>icustays_tble</code> and the lab items listed in HW2.</li>
 </ol>
+<p><strong>Solution:</strong> Here is my code. I ended up not using labels on app (inputting them directly in <code>ui</code>).</p>
 <pre class="r"><code># full labevents table
 labevents_tble &lt;- tbl(con, &quot;labevents&quot;) %&gt;%
   show_query() %&gt;%
@@ -616,8 +618,6 @@ labevents_tble &lt;- labevents_tble %&gt;%
   left_join(select(d_labitems_tble, itemid, label), by = c(&quot;itemid&quot;)) %&gt;%
   show_query() %&gt;%
   print(width = Inf)</code></pre>
-<pre><code>## Warning: ORDER BY is ignored in subqueries without LIMIT
-## ℹ Do you need to move arrange() later in the pipeline or use window_order() instead?</code></pre>
 <pre><code>## &lt;SQL&gt;
 ## SELECT `labevent_id`, `subject_id`, `hadm_id`, `specimen_id`, `LHS`.`itemid` AS `itemid`, `charttime`, `storetime`, `value`, `valuenum`, `valueuom`, `ref_range_lower`, `ref_range_upper`, `flag`, `priority`, `comments`, `label`
 ## FROM (SELECT * FROM (SELECT *
@@ -636,10 +636,9 @@ labevents_tble &lt;- labevents_tble %&gt;%
 ## )) `LHS`
 ## LEFT JOIN (SELECT `itemid`, `label`
 ## FROM `d_labitems`) `RHS`
-## ON (`LHS`.`itemid` = `RHS`.`itemid`)</code></pre>
-<pre><code>## Warning: ORDER BY is ignored in subqueries without LIMIT
-## ℹ Do you need to move arrange() later in the pipeline or use window_order() instead?</code></pre>
-<pre><code>## # Source:     lazy query [?? x 16]
+## ON (`LHS`.`itemid` = `RHS`.`itemid`)
+## 
+## # Source:     lazy query [?? x 16]
 ## # Database:   BigQueryConnection
 ## # Ordered by: subject_id, itemid
 ##    labevent_id subject_id  hadm_id specimen_id itemid charttime          
@@ -680,6 +679,7 @@ labevents_tble &lt;- labevents_tble %&gt;%
 ## 10 &lt;NA&gt;     STAT     &lt;NA&gt;     White Blood Cells
 ## # … with more rows</code></pre>
 <p>Only keep the first lab measurements during ICU stay and pivot lab items to become variables/columns.</p>
+<p><strong>Solution:</strong> Here is my code. I avoided an error in BigQuery by adding <code>lab</code> at the beginning of the <code>itemid</code>, using <code>names_prefix</code>.</p>
 <pre class="r"><code>labevents_tble &lt;- labevents_tble %&gt;%
   # add intime &amp; outtime from icustays_tble to find the first lab measurement
   left_join(select(icustays_tble, subject_id, intime, outtime), 
@@ -693,15 +693,11 @@ labevents_tble &lt;- labevents_tble %&gt;%
   # keep only 11 columns and spread label and valuenum
   ungroup() %&gt;%
   select(c(subject_id, itemid, valuenum)) %&gt;%
+  # spread valuenum by itemid 
   pivot_wider(names_from = itemid, values_from = valuenum, 
               names_prefix = &quot;lab&quot;) %&gt;%
-  # rename(Calcium = &quot;Calcium, Total&quot;, WBC = &quot;White Blood Cells&quot;) %&gt;%
   show_query() %&gt;%
   print(width = Inf) </code></pre>
-<pre><code>## Warning: ORDER BY is ignored in subqueries without LIMIT
-## ℹ Do you need to move arrange() later in the pipeline or use window_order() instead?
-## ORDER BY is ignored in subqueries without LIMIT
-## ℹ Do you need to move arrange() later in the pipeline or use window_order() instead?</code></pre>
 <pre><code>## &lt;SQL&gt;
 ## SELECT `subject_id`, MAX(IF(`itemid` = 50971, `valuenum`, NULL)) AS `lab50971`, MAX(IF(`itemid` = 51301, `valuenum`, NULL)) AS `lab51301`, MAX(IF(`itemid` = 50893, `valuenum`, NULL)) AS `lab50893`, MAX(IF(`itemid` = 50931, `valuenum`, NULL)) AS `lab50931`, MAX(IF(`itemid` = 51221, `valuenum`, NULL)) AS `lab51221`, MAX(IF(`itemid` = 50902, `valuenum`, NULL)) AS `lab50902`, MAX(IF(`itemid` = 50983, `valuenum`, NULL)) AS `lab50983`, MAX(IF(`itemid` = 50882, `valuenum`, NULL)) AS `lab50882`, MAX(IF(`itemid` = 50912, `valuenum`, NULL)) AS `lab50912`, MAX(IF(`itemid` = 50960, `valuenum`, NULL)) AS `lab50960`
 ## FROM (SELECT `subject_id`, `itemid`, `valuenum`
@@ -739,10 +735,8 @@ labevents_tble &lt;- labevents_tble %&gt;%
 ## ) `q02`
 ## WHERE ((`charttime` &gt;= `intime`) AND (`charttime` &lt;= `outtime`))
 ## GROUP BY `subject_id`, `itemid`) `q03`) `q04`
-## GROUP BY `subject_id`</code></pre>
-<pre><code>## Warning: ORDER BY is ignored in subqueries without LIMIT
-## ℹ Do you need to move arrange() later in the pipeline or use window_order() instead?</code></pre>
-<pre><code>## # Source:   lazy query [?? x 11]
+## GROUP BY `subject_id`
+## # Source:   lazy query [?? x 11]
 ## # Database: BigQueryConnection
 ##    subject_id lab50971 lab51301 lab50893 lab50931 lab51221 lab50902 lab50983
 ##         &lt;int&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
@@ -772,6 +766,7 @@ labevents_tble &lt;- labevents_tble %&gt;%
 <ol start="7" style="list-style-type: decimal">
 <li>Connect to <code>chartevents</code> table and retrieve a subset that only contain subjects who appear in <code>icustays_tble</code> and the chart events listed in HW2.</li>
 </ol>
+<p><strong>Solution:</strong> Here is my code, based on the same idea as Q1-6.</p>
 <pre class="r"><code># full chartevents table
 chartevents_tble &lt;- tbl(con, &quot;chartevents&quot;) %&gt;%
   show_query() %&gt;%
@@ -850,8 +845,6 @@ chartevents_tble &lt;- chartevents_tble %&gt;%
   left_join(select(d_items_tble, itemid, label), by = c(&quot;itemid&quot;)) %&gt;%
   show_query() %&gt;%
   print(width = Inf)</code></pre>
-<pre><code>## Warning: ORDER BY is ignored in subqueries without LIMIT
-## ℹ Do you need to move arrange() later in the pipeline or use window_order() instead?</code></pre>
 <pre><code>## &lt;SQL&gt;
 ## SELECT `subject_id`, `hadm_id`, `stay_id`, `charttime`, `storetime`, `LHS`.`itemid` AS `itemid`, `value`, `valuenum`, `valueuom`, `warning`, `label`
 ## FROM (SELECT * FROM (SELECT *
@@ -870,10 +863,9 @@ chartevents_tble &lt;- chartevents_tble %&gt;%
 ## )) `LHS`
 ## LEFT JOIN (SELECT `itemid`, `label`
 ## FROM `d_items`) `RHS`
-## ON (`LHS`.`itemid` = `RHS`.`itemid`)</code></pre>
-<pre><code>## Warning: ORDER BY is ignored in subqueries without LIMIT
-## ℹ Do you need to move arrange() later in the pipeline or use window_order() instead?</code></pre>
-<pre><code>## # Source:     lazy query [?? x 11]
+## ON (`LHS`.`itemid` = `RHS`.`itemid`)
+## 
+## # Source:     lazy query [?? x 11]
 ## # Database:   BigQueryConnection
 ## # Ordered by: subject_id, itemid
 ##    subject_id  hadm_id  stay_id charttime           storetime           itemid
@@ -902,6 +894,7 @@ chartevents_tble &lt;- chartevents_tble %&gt;%
 ## 10 98.1      98.1 °F             0 Temperature Fahrenheit
 ## # … with more rows</code></pre>
 <p>Only keep the first chart events during ICU stay and pivot chart events to become variables/columns.</p>
+<p><strong>Solution:</strong> Here is my code, based on the same idea as Q1-6.</p>
 <pre class="r"><code>chartevents_tble &lt;- chartevents_tble %&gt;%
   # add intime &amp; outtime from icustays_tble to find the first vital measurement
   left_join(select(icustays_tble, subject_id, intime, outtime), 
@@ -915,14 +908,11 @@ chartevents_tble &lt;- chartevents_tble %&gt;%
   # restrict columns and spread label and valuenum
   ungroup() %&gt;%
   select(c(subject_id, itemid, valuenum)) %&gt;%
+  # spread valuenum by itemid 
   pivot_wider(names_from = itemid, values_from = valuenum, 
               names_prefix = &quot;chart&quot;) %&gt;%
   show_query() %&gt;%
   print(width = Inf)</code></pre>
-<pre><code>## Warning: ORDER BY is ignored in subqueries without LIMIT
-## ℹ Do you need to move arrange() later in the pipeline or use window_order() instead?
-## ORDER BY is ignored in subqueries without LIMIT
-## ℹ Do you need to move arrange() later in the pipeline or use window_order() instead?</code></pre>
 <pre><code>## &lt;SQL&gt;
 ## SELECT `subject_id`, MAX(IF(`itemid` = 220210, `valuenum`, NULL)) AS `chart220210`, MAX(IF(`itemid` = 223761, `valuenum`, NULL)) AS `chart223761`, MAX(IF(`itemid` = 220179, `valuenum`, NULL)) AS `chart220179`, MAX(IF(`itemid` = 220045, `valuenum`, NULL)) AS `chart220045`, MAX(IF(`itemid` = 220181, `valuenum`, NULL)) AS `chart220181`
 ## FROM (SELECT `subject_id`, `itemid`, `valuenum`
@@ -960,10 +950,8 @@ chartevents_tble &lt;- chartevents_tble %&gt;%
 ## ) `q02`
 ## WHERE ((`charttime` &gt;= `intime`) AND (`charttime` &lt;= `outtime`))
 ## GROUP BY `subject_id`, `itemid`) `q03`) `q04`
-## GROUP BY `subject_id`</code></pre>
-<pre><code>## Warning: ORDER BY is ignored in subqueries without LIMIT
-## ℹ Do you need to move arrange() later in the pipeline or use window_order() instead?</code></pre>
-<pre><code>## # Source:   lazy query [?? x 6]
+## GROUP BY `subject_id`
+## # Source:   lazy query [?? x 6]
 ## # Database: BigQueryConnection
 ##    subject_id chart220210 chart223761 chart220179 chart220045 chart220181
 ##         &lt;int&gt;       &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;
@@ -981,6 +969,11 @@ chartevents_tble &lt;- chartevents_tble %&gt;%
 <ol start="8" style="list-style-type: decimal">
 <li>Put things together. This step is similar to Q7 of HW2. Using one chain of pipes <code>%&gt;%</code> to perform following data wrangling steps: (i) start with the <code>icustays_tble</code> for the first ICU stay of each unique patient, (ii) merge in admissions and patients tables, (iii) keep adults only (age at admission &gt;= 18), (iv) merge in the labevents and chartevents tables, (v) create an indicator for 30-day mortality, (vi) save the final tibble to an <code>icu_cohort.rds</code> R data file in the <code>mimiciv_shiny</code> folder.</li>
 </ol>
+<p><strong>Solution:</strong> Here is my code. The difference from HW2 is:</p>
+<ul>
+<li>age at admission &gt;= 18 instead of &gt;18</li>
+<li>using <code>dod</code> instead of <code>deathtime</code> due to limitations in BigQuery</li>
+</ul>
 <pre class="r"><code># make a directory mimiciv_shiny
 if (!dir.exists(&quot;mimiciv_shiny&quot;)) {
   dir.create(&quot;mimiciv_shiny&quot;)
@@ -1242,16 +1235,27 @@ icu_cohort &lt;- icustays_tble %&gt;%
 ##  9          51          50 FALSE          
 ## 10          69          49 FALSE          
 ## # … with more rows</code></pre>
-<pre class="r"><code>icu_cohort2 &lt;- icu_cohort %&gt;%
-  select(admittime, deathtime, thirty_day_mort) %&gt;%
-  filter(thirty_day_mort == TRUE) %&gt;%
-  summarise(n=n()) %&gt;%
+<pre class="r"><code># check if thirty_day_mort works correctly
+icu_cohort %&gt;%
+  select(admittime, dod, thirty_day_mort) %&gt;%
+  na.exclude %&gt;%
+    filter(thirty_day_mort == FALSE, !is.na(dod)) %&gt;%
   print(width = Inf)</code></pre>
-<pre><code>## # Source:   lazy query [?? x 1]
+<pre><code>## # Source:   lazy query [?? x 3]
 ## # Database: BigQueryConnection
-##       n
-##   &lt;int&gt;
-## 1  5436</code></pre>
+##    admittime           dod        thirty_day_mort
+##    &lt;dttm&gt;              &lt;date&gt;     &lt;lgl&gt;          
+##  1 2115-11-02 18:38:00 2115-12-11 FALSE          
+##  2 2149-01-20 18:21:00 2150-03-10 FALSE          
+##  3 2130-09-09 08:57:00 2138-09-22 FALSE          
+##  4 2138-10-18 19:37:00 2138-11-30 FALSE          
+##  5 2192-09-25 16:43:00 2193-08-26 FALSE          
+##  6 2149-09-03 08:00:00 2151-07-11 FALSE          
+##  7 2179-03-28 06:35:00 2179-05-26 FALSE          
+##  8 2112-07-08 20:48:00 2112-12-04 FALSE          
+##  9 2160-12-29 13:24:00 2171-12-10 FALSE          
+## 10 2147-05-25 19:30:00 2147-07-16 FALSE          
+## # … with more rows</code></pre>
 <p>Close database connection and clear workspace.</p>
 <pre class="r"><code>dbDisconnect(con)
 rm(list = ls())</code></pre>
@@ -1259,7 +1263,7 @@ rm(list = ls())</code></pre>
 <div id="q2.-shiny-app" class="section level2">
 <h2>Q2. Shiny app</h2>
 <p>Develop a Shiny app for exploring the ICU cohort data created in Q1. The app should reside in the <code>mimiciv_shiny</code> folder. The app should provide easy access to the graphical and numerical summaries of variables (demographics, lab measurements, vitals) in the ICU cohort.</p>
-<p><strong>solution:</strong> XXXX.</p>
+<p><strong>Solution:</strong> My app (app.R) was resided in the <code>mimiciv_shiny</code> folder. I made two types of summaries: using 30-day mortality as an indicator (like HW2) and not.</p>
 </div>
 
 
