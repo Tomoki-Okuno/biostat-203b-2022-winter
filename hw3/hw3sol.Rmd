@@ -251,10 +251,10 @@ icu_cohort <- icustays_tble %>%
 icu_cohort %>%
   select(admittime, dod, thirty_day_mort) %>%
   filter(thirty_day_mort == TRUE) %>%
-  summarize(n = n()) %>%
+  summarise(n = n()) %>%
   print(width = Inf)
 ```
-**Comment:** I got 5,436 patients who died withn 30 days. IF changing `age_hadm >= 18` to `> 18`, the number will be 5,435.
+**Comment:** I got 5,436 patients who died withn 30 days. If changing `age_hadm >= 18` to `> 18`, the number will be 5,435.
 
 Close database connection and clear workspace.
 ```{r, eval=F}
@@ -266,4 +266,4 @@ rm(list = ls())
 
 Develop a Shiny app for exploring the ICU cohort data created in Q1. The app should reside in the `mimiciv_shiny` folder. The app should provide easy access to the graphical and numerical summaries of variables (demographics, lab measurements, vitals) in the ICU cohort.
 
-**Solution:** My app (app.R) was saved in the `mimiciv_shiny` folder. I made two types of summaries: using 30-day mortality as an indicator (like HW2) and not.
+**Solution:** My app (app.R) was saved in the `mimiciv_shiny` folder. I made two types of summaries: using 30-day mortality as an indicator (like HW2) and not. For numerical variables, I removed extreme values to make the graphs readable.

@@ -18,10 +18,6 @@ choice_lab = paste("lab", choice_lab, sep = "")
 choice_chart <- c(220045, 220181, 220179, 223761, 220210)
 choice_chart = paste("chart", choice_chart, sep = "")
 
-# keep only the columns to summarize on app
-data <- data %>% select(demo_var1, demo_var2, 
-                        choice_lab, choice_chart, "thirty_day_mort")
-
 ui <- fluidPage(
   titlePanel("Shiny app for exploring the ICU cohort"),
   sidebarLayout(
@@ -55,7 +51,7 @@ ui <- fluidPage(
                    c("None" = 0, "30-day mortality" = 1))
     ),
     mainPanel(
-      h2("Summary of the variable"),
+      h2("Numerical and graphical summary of the variable"),
       tableOutput("table"),
       verbatimTextOutput("sum"),
       plotOutput("box")
@@ -70,13 +66,13 @@ server <- function(input,output){
         # numerical summary of categorical variables
         data %>%
           group_by_(input$var)  %>%
-          summarise(n = n()) %>%
+          summarize(n = n()) %>%
           mutate(prop = n / sum(n)) 
       } else {
         # numerical summary of categorical variables by indicator
         data %>%
           group_by_("thirty_day_mort", input$var) %>%
-          summarise(n = n()) %>%
+          summarize(n = n()) %>%
           mutate(prop = n / sum(n)) %>%
           select(-n) %>%
           spread("thirty_day_mort", prop)
