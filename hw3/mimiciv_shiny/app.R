@@ -96,7 +96,7 @@ server <- function(input,output){
         # numerical summary of numerical variables by indicator
         data %>%
           select(input$var, "thirty_day_mort") %>%
-          filter(. > 0) %>%
+          filter(.[, 1] > 0) %>%
           group_by_("thirty_day_mort") %>%
           na.omit() %>% 
           summarize_all(funs(
@@ -152,7 +152,7 @@ server <- function(input,output){
         # graphical summary of numerical variables by indicator
         data %>%
           select(input$var, "thirty_day_mort") %>%
-          filter(. > 0) %>%
+          filter(.[, 1] > 0) %>%
           group_by_("thirty_day_mort") %>%
           na.omit() %>% 
           ggplot(mapping = aes_string(x = "thirty_day_mort", y = input$var)) +
