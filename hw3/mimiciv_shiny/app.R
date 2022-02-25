@@ -4,9 +4,7 @@ library(ggplot2)
 library(datasets)
 
 # import icu_cohort data as a tibble
-# setwd("hw3/mimiciv_shiny")
 data <- read_rds("icu_cohort.rds")
-data <- collect(data)
 
 # select variables I plan to use
 ## demographics
@@ -22,7 +20,7 @@ choice_chart = paste("chart", choice_chart, sep = "")
 
 # keep only the columns to summarize on app
 data <- data %>% select(demo_var1, demo_var2, 
-               choice_lab, choice_chart, "thirty_day_mort")
+                        choice_lab, choice_chart, "thirty_day_mort")
 
 ui <- fluidPage(
   titlePanel("Shiny app for exploring the ICU cohort"),
@@ -51,7 +49,7 @@ ui <- fluidPage(
                     "Systolic Non-invasive Blood Pressure" = "chart220179",
                     "Body Temperature in Fahrenheit" = "chart223761",
                     "Respiratory Rate" = "chart220210"
-                    ), 
+                  ), 
                   selectize = FALSE),
       radioButtons("indicator", "Indicator",
                    c("None" = 0, "30-day mortality" = 1))
@@ -73,8 +71,8 @@ server <- function(input,output){
         data %>%
           group_by_(input$var)  %>%
           summarise(n = n()) %>%
-          mutate(prop = n / sum(n))
-        } else {
+          mutate(prop = n / sum(n)) 
+      } else {
         # numerical summary of categorical variables by indicator
         data %>%
           group_by_("thirty_day_mort", input$var) %>%
@@ -112,7 +110,8 @@ server <- function(input,output){
             Mean   = mean,
             Q3     = quantile(., 0.75), 
             Max    = max, 
-            Sd     = sd)) 
+            Sd     = sd)) %>%
+          arrange(desc(thirty_day_mort))
       }
     }
   })

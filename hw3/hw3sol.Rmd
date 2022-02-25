@@ -102,7 +102,7 @@ admissions_tble <- admissions_tble　%>%
 5. Connect to the `patients` table and only keep the patients who have a match in `icustays_tble` (according to `subject_id`).
 
 **Solution:** Here is my code. 
-```{r}
+```{r warning = FALSE}
 # full patients table
 patients_tble <- tbl(con, "patients") %>%
   show_query() %>%
@@ -207,7 +207,7 @@ chartevents_tble <- chartevents_tble %>%
   summarise_all(min) %>%
   # restrict columns and spread label and valuenum
   ungroup() %>%
-  select(c(subject_id, itemid, valuenum)) %>%
+  select(c(stay_id, itemid, valuenum)) %>%
   # spread valuenum by itemid 
   pivot_wider(names_from = itemid, values_from = valuenum, 
               names_prefix = "chart") %>%
@@ -236,25 +236,25 @@ icu_cohort <- icustays_tble %>%
   filter(age_hadm >= 18) %>%
   # (iv) merge in the labevents and chartevents tables
   left_join(labevents_tble, by = c("subject_id")) %>%
-  left_join(chartevents_tble, by = c("subject_id")) %>%
+  left_join(chartevents_tble, by = c("stay_id")) %>%
   # (v) create an indicator for 30-day mortality
-  # mutate(hadm_to_death =
-  #          ifelse(is.na(dod), Inf, DATE_DIFF(dod, admittime, DAY))) %>%
   mutate(thirty_day_mort = 
            ifelse(is.na(dod), FALSE,
-                                  DATE_DIFF(dod, admittime, DAY) <= 30)) %>%
+                  DATE_DIFF(date(dod), date(admittime), DAY) <= 30)) %>%
   # (vi) save the final tibble to an `icu_cohort.rds` in `mimiciv_shiny`
+  collect() %>%
   write_rds("mimiciv_shiny/icu_cohort.rds") %>%
-  show_query() %>%
+  # show_query() %>%
   print(width = Inf)
 
-# check if thirty_day_mort works correctly
+# check the number of patients who died within 30 days
 icu_cohort %>%
   select(admittime, dod, thirty_day_mort) %>%
-  na.exclude %>%
-    filter(thirty_day_mort == FALSE, !is.na(dod)) %>%
+  filter(thirty_day_mort == TRUE) %>%
+  summarize(n = n()) %>%
   print(width = Inf)
 ```
+**Comment:** I got 5,436 patients who died withn 30 days. IF changing `age_hadm >= 18` to `> 18`, the number will be 5,435.
 
 Close database connection and clear workspace.
 ```{r, eval=F}
@@ -266,4 +266,4 @@ rm(list = ls())
 
 Develop a Shiny app for exploring the ICU cohort data created in Q1. The app should reside in the `mimiciv_shiny` folder. The app should provide easy access to the graphical and numerical summaries of variables (demographics, lab measurements, vitals) in the ICU cohort.
 
-**Solution:** My app (app.R) was resided in the `mimiciv_shiny` folder. I made two types of summaries: using 30-day mortality as an indicator (like HW2) and not.
+**Solution:** My app (app.R) was saved in the `mimiciv_shiny` folder. I made two types of summaries: using 30-day mortality as an indicator (like HW2) and not.
