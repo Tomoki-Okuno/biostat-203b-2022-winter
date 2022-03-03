@@ -1,0 +1,124 @@
+---
+title: "Biostat 203B Homework 4"
+author: "Tomoki Okuno"
+subtitle: Due Mar 18 @ 11:59PM
+output:
+  # ioslides_presentation: default
+  html_document:
+    toc: true
+    toc_depth: 4
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+```
+
+Display machine information:
+```{r}
+sessionInfo()
+```
+Load database libraries and the tidyverse frontend:
+```{r}
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(lubridate))
+suppressPackageStartupMessages(library(miceRanger))
+```
+
+## Q1. Missing data
+
+Through the Shiny app developed in HW3, we observe abundant missing values in the MIMIC-IV ICU cohort we created. In this question, we use multiple imputation to obtain a data set without missing values.
+
+0. Read following tutorials on the R package miceRanger for imputation: <https://github.com/farrellday/miceRanger>, <https://cran.r-project.org/web/packages/miceRanger/vignettes/miceAlgorithm.html>.
+
+    A more thorough book treatment of the practical imputation strategies is the book [*_Flexible Imputation of Missing Data_*](https://stefvanbuuren.name/fimd/) by Stef van Buuren. 
+
+1. Explain the jargon MCAR, MAR, and MNAR.
+
+**Solution:**  
+These terminologies represent the missing data mechanism.
+
+- MCAR stands for Missing Completely At Random: Missingness is independent of data. The type of data is rarely found in real data.
+- MAR stands for Missing At Random. Missingness does not depend on the missing data but on the observed data. The probability of missing data is randomly generated conditional on the observed data. For instance, the older a person is, the more likely the data on income are to be missing. 
+- MNAR stands for Missing Not At Random: Missingness depends on the missing data. For example, the lower your income, the less likely you may be to report your income.
+
+2. Explain in a couple of sentences how the Multiple Imputation by Chained Equations (MICE) work.
+
+**Solution:**  
+While the single imputation supplements one missing data in datasets with one value, the multiple imputation iterates this procedure until convergence to integrate (pool) the given estimates. MICE is one of the most typical methods and imputes missing values by regressing of each missing variable on the remaining variables.
+
+3. Perform a data quality check of the ICU stays data. Discard variables with substantial missingness, say >5000 `NA`s. Replace apparent data entry errors by `NA`s.
+
+**Solution:**
+```{r}
+os <- sessionInfo()$running
+if (str_detect(os, "Linux")) {
+  mimic_path <- "/mnt/mimiciv/1.0"
+} else if (str_detect(os, "macOS")) {
+  mimic_path <- "/Users/tomokiokuno/mimic-iv-1.0"
+}
+icustays_tble <- read_csv(str_c(mimic_path, "/icu/icustays.csv.gz")) %>%
+  arrange(subject_id, hadm_id) %>%
+  print(width = Inf)
+colSums(is.na(icustays_tble))
+```
+
+```{r}
+# import icu_cohort I created in HW3
+icu_cohort <- read_rds("icu_cohort.rds")
+
+# check variables with more than 5000 missing values
+icu_cohort %>%
+  select_if(colSums(is.na(icu_cohort)) > 5000) %>%
+  colnames()
+
+# keep only variables with less than 5000 missing values
+icu_cohort2 <- icu_cohort %>%
+  select_if(colSums(is.na(icu_cohort)) <= 5000) %>%
+  print(width = Inf)
+
+summary(icu_cohort2)
+
+# make a function to replace outliers to `NA`s using IQR
+f1 <- function(x) {
+  qnt <- quantile(x, probs = c(.25, .75), na.rm = TRUE)
+  H <- 1.5 * IQR(x, na.rm = TRUE)
+  x[x < (qnt[1] - H)] <- NA
+  x[x > (qnt[2] + H)] <- NA
+  x
+}
+
+# replace outliers to `NA`s for numerical variables
+icu_cohort3 <- icu_cohort2 %>% 
+  mutate_if(is.numeric, f1)
+
+summary(icu_cohort2)
+summary(icu_cohort3)
+```
+
+
+4. Impute missing values by `miceRanger` (request $m=3$ data sets). This step is computational intensive. Make sure to save the imputation results as a file. Hint: Setting `max.depth=10` in the `miceRanger` function may cut some computing time.
+miceRanger`で欠損値をインプットする（$m=3$個のデータセットを要求する）。このステップは計算量が多い。インピュテーションの結果は必ずファイルとして保存してください。ヒント：`miceRanger`関数で `max.depth=10` を設定すると、計算時間が短縮されることがあります。
+
+
+5. Make imputation diagnostic plots and explain what they mean.
+インピュテーション診断プロットを作成し、その意味を説明しなさい。
+
+
+6. Choose one of the imputed data sets to be used in Q2. This is **not** a good idea to use just one imputed data set or to average multiple imputed data sets. Explain in a couple of sentences what the correct Multiple Imputation strategy is.
+
+Q2 で使用するインピュテーションされたデータセットを一つ選びなさい。これは、1つのインプットされたデータセットだけを使ったり、複数のインプットされたデータセットを平均化したりするのは **NG**である。正しいMultiple Imputationの戦略を2,3文で説明しなさい。
+
+
+## Q2. Predicting 30-day mortality
+
+Develop at least two analytic approaches for predicting the 30-day mortality of patients admitted to ICU using demographic information (gender, age, marital status, ethnicity), first lab measurements during ICU stay, and first vital measurements during ICU stay. For example, you can use (1) logistic regression (`glm()` function in base R or keras), (2) logistic regression with lasso penalty (glmnet or keras package), (3) random forest (randomForest package), or (4) neural network (keras package).
+人口統計情報（性別、年齢、配偶者の有無、民族性）、ICU滞在中の最初の検査値、ICU滞在中の最初のバイタル測定値を用いて、ICU入院患者の30日死亡率を予測する分析アプローチを少なくとも2つ開発しなさい。例えば、(1)ロジスティック回帰(base Rまたはkerasの`glm()`関数)、(2)lassoペナルティ付きロジスティック回帰（glmnetまたはkerasパッケージ）、(3)ランダムフォレスト（randomForestパッケージ）、(4)ニューラルネットワーク（kerasパッケージ）などが使用可能です。
+
+1. Partition data into 80% training set and 20% test set. Stratify partitioning according the 30-day mortality status.
+1. データを80%のトレーニングセットと20%のテストセットに分割する。30日後の死亡状況に応じてパーティショニングを層別化する。
+
+
+2. Train the models using the training set.
+
+3. Compare model prediction performance on the test set.
+
