@@ -31,55 +31,45 @@ Through the Shiny app developed in HW3, we observe abundant missing values in th
 0. Read following tutorials on the R package miceRanger for imputation: <https://github.com/farrellday/miceRanger>, <https://cran.r-project.org/web/packages/miceRanger/vignettes/miceAlgorithm.html>.
 
     A more thorough book treatment of the practical imputation strategies is the book [*_Flexible Imputation of Missing Data_*](https://stefvanbuuren.name/fimd/) by Stef van Buuren. 
+    
+ **Solution:**
+Read the tutorial for `miceRanger`.
 
 1. Explain the jargon MCAR, MAR, and MNAR.
 
 **Solution:**  
 These terminologies represent the missing data mechanism.
 
-- MCAR stands for Missing Completely At Random: Missingness is independent of data. The type of data is rarely found in real data.
-- MAR stands for Missing At Random. Missingness does not depend on the missing data but on the observed data. The probability of missing data is randomly generated conditional on the observed data. For instance, the older a person is, the more likely the data on income are to be missing. 
-- MNAR stands for Missing Not At Random: Missingness depends on the missing data. For example, the lower your income, the less likely you may be to report your income.
+- MCAR stands for missing completely at random: Missingness is independent of any data. The type of data is rarely found in real data.
+- MAR stands for missing at random. Missingness does not depend on the missing data but on the observed data. The probability of missing data is randomly generated conditional on the observed data. For instance, the older a person is, the more likely the data on income are to be missing. 
+- MNAR stands for missing not at Random: Missingness depends on the missing data itself. For example, the lower your income, the less likely you may be to report your income.
 
 2. Explain in a couple of sentences how the Multiple Imputation by Chained Equations (MICE) work.
 
 **Solution:**  
-While the single imputation supplements one missing data in datasets with one value, the multiple imputation iterates this procedure until convergence to integrate (pool) the given estimates. MICE is one of the most typical methods and imputes missing values by regressing of each missing variable on the remaining variables.
+While the single imputation supplements one missing data with one value, the multiple imputation iterates this procedure until convergence to integrate the given estimates. MICE is one of the most typical methods and imputes missing values for categorical and numeric data by regressing each missing variable on the remaining variables.
 
 3. Perform a data quality check of the ICU stays data. Discard variables with substantial missingness, say >5000 `NA`s. Replace apparent data entry errors by `NA`s.
 
-**Solution:**
+**Solution:**  
+I deleted variables with more than 5000 `NA`s, which were `deathtime`, `edregtime`, `edouttime`, and `dod`. For the remaining numerical variables, values outside of [Q1 - 1.5 IQR, Q3 + 1.5 IQR] were replaced by `NA`s as outliers.
 ```{r}
-os <- sessionInfo()$running
-if (str_detect(os, "Linux")) {
-  mimic_path <- "/mnt/mimiciv/1.0"
-} else if (str_detect(os, "macOS")) {
-  mimic_path <- "/Users/tomokiokuno/mimic-iv-1.0"
-}
-icustays_tble <- read_csv(str_c(mimic_path, "/icu/icustays.csv.gz")) %>%
-  arrange(subject_id, hadm_id) %>%
-  print(width = Inf)
-colSums(is.na(icustays_tble))
-```
-
-```{r}
-# import icu_cohort I created in HW3
+# import ICU cohort data created in HW3
 icu_cohort <- read_rds("icu_cohort.rds")
-
+# delete patients aged 18 since I followed the instruction to keep them in HW3
+icu_cohort <- icu_cohort %>%
+  filter(age_hadm > 18)
 # check variables with more than 5000 missing values
 icu_cohort %>%
   select_if(colSums(is.na(icu_cohort)) > 5000) %>%
   colnames()
-
 # keep only variables with less than 5000 missing values
-icu_cohort2 <- icu_cohort %>%
+icu_cohort_discard <- icu_cohort %>%
   select_if(colSums(is.na(icu_cohort)) <= 5000) %>%
   print(width = Inf)
 
-summary(icu_cohort2)
-
-# make a function to replace outliers to `NA`s using IQR
-f1 <- function(x) {
+# make a function to replace outliers to `NA`s basd on IQR rule
+outlier_to_na <- function(x) {
   qnt <- quantile(x, probs = c(.25, .75), na.rm = TRUE)
   H <- 1.5 * IQR(x, na.rm = TRUE)
   x[x < (qnt[1] - H)] <- NA
@@ -88,37 +78,177 @@ f1 <- function(x) {
 }
 
 # replace outliers to `NA`s for numerical variables
-icu_cohort3 <- icu_cohort2 %>% 
-  mutate_if(is.numeric, f1)
-
-summary(icu_cohort2)
-summary(icu_cohort3)
+icu_cohort_replace <- icu_cohort_discard %>% 
+  mutate_if(is.numeric, outlier_to_na)
+# summary(icu_cohort_discard)
+# summary(icu_cohort_replace)
 ```
 
 
 4. Impute missing values by `miceRanger` (request $m=3$ data sets). This step is computational intensive. Make sure to save the imputation results as a file. Hint: Setting `max.depth=10` in the `miceRanger` function may cut some computing time.
-miceRanger`で欠損値をインプットする（$m=3$個のデータセットを要求する）。このステップは計算量が多い。インピュテーションの結果は必ずファイルとして保存してください。ヒント：`miceRanger`関数で `max.depth=10` を設定すると、計算時間が短縮されることがあります。
 
+**Solution:**  
+I kept only variables we plan to use and use `miceRanger` to save three imputed datasets to a `icu_cohort_imputed.rds`.
+```{r}
+# demographics
+demo_var = c("gender", "age_hadm", "marital_status", "ethnicity",
+             "thirty_day_mort")
+# lab measurements
+lab_item <- c(50912, 50971, 50983, 50902, 50882, 
+                51221, 51301, 50931, 50960, 50893)
+lab_item = paste("lab", lab_item, sep = "")
+# vitals
+vital_item <- c(220045, 220181, 220179, 223761, 220210)
+vital_item = paste("chart", vital_item, sep = "")
+
+icu_cohort_mice <- icu_cohort_replace %>%
+  select(all_of(demo_var), all_of(lab_item), all_of(vital_item))
+
+summary(icu_cohort_mice)
+
+if (file.exists("icu_cohort_imputed.rds")) {
+  icu_cohort_imputed <- read_rds("icu_cohort_imputed.rds")
+} else {
+  parTime <- system.time(
+    icu_cohort_imputed <- miceRanger(
+      icu_cohort_mice,
+      m = 3,
+      max.depth = 10,
+      returnModels = FALSE,
+      verbose = TRUE
+    )
+  )
+  icu_cohort_imputed %>%
+    write_rds("icu_cohort_imputed.rds")
+}
+
+```
 
 5. Make imputation diagnostic plots and explain what they mean.
-インピュテーション診断プロットを作成し、その意味を説明しなさい。
 
+**Solution:** 
+imputation diagnostic plots are shown below. Imputation diagnostic plots help check whether the imputed distribution may be valid or not by comparing the original one for each variable.
+
+Imputation diagnostic plots tell you how valid the imputations may be, how they are distributed, which variables were used to impute other variables, and so on. The red line is the density of the original, nonmissing data. The smaller, black lines are the density of the imputed values in each of the datasets. If these don’t match up, it’s not a problem, however it may tell you that your data was not Missing Completely at Random (MCAR).
+
+```{r}
+plotDistributions(icu_cohort_imputed, vars = 'allNumeric')
+plotCorrelations(icu_cohort_imputed, vars = 'allNumeric')
+plotVarConvergence(icu_cohort_imputed, vars = 'allNumeric')
+plotModelError(icu_cohort_imputed,vars = 'allNumeric')
+plotVarImportance(icu_cohort_imputed)
+plotImputationVariance(icu_cohort_imputed, ncol = 2, widths = c(5,3))
+```
 
 6. Choose one of the imputed data sets to be used in Q2. This is **not** a good idea to use just one imputed data set or to average multiple imputed data sets. Explain in a couple of sentences what the correct Multiple Imputation strategy is.
 
-Q2 で使用するインピュテーションされたデータセットを一つ選びなさい。これは、1つのインプットされたデータセットだけを使ったり、複数のインプットされたデータセットを平均化したりするのは **NG**である。正しいMultiple Imputationの戦略を2,3文で説明しなさい。
+**Solution:**  
+The correct Multiple Imputation strategy is to pool multiple imputed data sets, that is, integrate estimates, accounting for variation among imputed values. The variance combines the conventional sampling variance (within-imputation variance) and the extra variance caused by the missing data extra variance caused by the missing data (between-imputation variance). The pooled estimates are unbiased and have the correct statistical properties.
 
+```{r}
+library(mice)
+library(superml)
+icu_cohort_complete <- completeData(icu_cohort_imputed)
+
+# encode categorical variable using lavel encoding
+lbl <- LabelEncoder$new()
+for (i in 1:3){
+  # gender
+  lbl$fit(icu_cohort_complete[[i]]$gender)
+  icu_cohort_complete[[i]]$gender <- 
+    lbl$fit_transform(icu_cohort_complete[[i]]$gender)
+  # marital status
+  lbl$fit(icu_cohort_complete[[i]]$marital_status)
+  icu_cohort_complete[[i]]$marital_status <- 
+    lbl$fit_transform(icu_cohort_complete[[i]]$marital_status)
+  # ethnicity
+  lbl$fit(icu_cohort_complete[[i]]$ethnicity)
+  icu_cohort_complete[[i]]$ethnicity <- 
+    lbl$fit_transform(icu_cohort_complete[[i]]$ethnicity)
+}
+# ???
+# icu_cohort_pool <- pool(icu_cohort_complete)
+```
 
 ## Q2. Predicting 30-day mortality
 
 Develop at least two analytic approaches for predicting the 30-day mortality of patients admitted to ICU using demographic information (gender, age, marital status, ethnicity), first lab measurements during ICU stay, and first vital measurements during ICU stay. For example, you can use (1) logistic regression (`glm()` function in base R or keras), (2) logistic regression with lasso penalty (glmnet or keras package), (3) random forest (randomForest package), or (4) neural network (keras package).
-人口統計情報（性別、年齢、配偶者の有無、民族性）、ICU滞在中の最初の検査値、ICU滞在中の最初のバイタル測定値を用いて、ICU入院患者の30日死亡率を予測する分析アプローチを少なくとも2つ開発しなさい。例えば、(1)ロジスティック回帰(base Rまたはkerasの`glm()`関数)、(2)lassoペナルティ付きロジスティック回帰（glmnetまたはkerasパッケージ）、(3)ランダムフォレスト（randomForestパッケージ）、(4)ニューラルネットワーク（kerasパッケージ）などが使用可能です。
 
 1. Partition data into 80% training set and 20% test set. Stratify partitioning according the 30-day mortality status.
-1. データを80%のトレーニングセットと20%のテストセットに分割する。30日後の死亡状況に応じてパーティショニングを層別化する。
 
+**Solution:**  
+I installed caret package to split data into 80% train set and 20% test set.
+```{r}
+library(caret)
+set.seed(3456)
+icu_cohort_pool <- icu_cohort_complete[[1]]
+trainIndex <- createDataPartition(icu_cohort_pool$thirty_day_mort, p = .8,
+                                  list = FALSE,
+                                  times = 1)
+trainset <- icu_cohort_pool[trainIndex, ]
+testset <- icu_cohort_pool[-trainIndex, ]
+```
 
-2. Train the models using the training set.
+2. Train the models using the trainset set.
+
+**Solution:**  
+**(1) logistic regression, using `glm()`**
+```{r}
+# fit the model
+logstc_model <- glm(trainset$thirty_day_mort~., trainset, family = binomial)
+summary(logstc_model)
+```
+
+**(2) logistic regression with lasso penalty using glmnet package**
+```{r}
+library(glmnet)
+# define x and y
+x <- model.matrix(trainset$thirty_day_mort~. ,trainset)
+y <- trainset$thirty_day_mort
+# find optimal value of lambda (alpha=1 => lasso)
+cv.out <- cv.glmnet(x, y, alpha = 1, family = "binomial", type.measure = "mse")
+cv.out
+# plot result
+plot(cv.out)
+# min value of lambda
+lambda_min <- cv.out$lambda.min
+# best value of lambda
+lambda_1se <- cv.out$lambda.1se
+# fit the model
+coef(cv.out, s = lambda_1se)
+```
+**(3) random forest (randomForest package)**
+```{r}
+
+```
+**(4) neural network (keras package)**
+```{r}
+
+```
 
 3. Compare model prediction performance on the test set.
 
+**Solution:**  
+ **(1) Logistic regression: Accuracy = about ??**
+```{r}
+# predict 30-day mortality using the model
+prob_logstc <- predict(logstc_model, testset, type = "response")
+# translate probabilities to predictions
+predict_logstc <- ifelse(prob_logstc > 0.5, TRUE, FALSE)
+# compute accuracy comparing the fitted value to 30-day mortality in test
+table(pred = predict_logstc, true = testset$thirty_day_mort)
+mean(predict_logstc == testset$thirty_day_mort)
+```
+**(2) logistic regression with lasso penalty: Accuracy = about ??**
+```{r}
+#get test data
+x_test <- model.matrix(testset$thirty_day_mort~. ,testset)
+# predict 30-day mortality using the model
+prob_lasso <- predict(cv.out, newx = x_test, s = lambda_1se, type = "response")
+# translate probabilities to predictions
+predict_lasso <- ifelse(prob_lasso > 0.5, TRUE, FALSE)
+# make confusion matrix
+table(pred = predict_lasso, true = testset$thirty_day_mort)
+# compute accuracy comparing the fitted value to 30-day mortality in test
+mean(predict_lasso == testset$thirty_day_mort)
+```
