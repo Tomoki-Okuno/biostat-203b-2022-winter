@@ -86,14 +86,8 @@ icustays_tble <- icustays_tble %>%
 
 **Solution:** Here is my code. 
 ```{r warning = FALSE}
-# full admissions table
+# import admissions table and only keep the patients for the first ICU stay
 admissions_tble <- tbl(con, "admissions") %>%
-  show_query() %>%
-  print(width = Inf)
-
-# only keep the patients for the first ICU stay
-admissions_tble <- admissions_tble　%>%
-  arrange(subject_id, hadm_id) %>%
   semi_join(icustays_tble, by = c("subject_id", "hadm_id")) %>%
   show_query() %>%
   print(width = Inf)
@@ -103,14 +97,8 @@ admissions_tble <- admissions_tble　%>%
 
 **Solution:** Here is my code. 
 ```{r warning = FALSE}
-# full patients table
+# import patients table and only keep the patients for the first ICU stay
 patients_tble <- tbl(con, "patients") %>%
-  show_query() %>%
-  print(width = Inf)
-
-# only keep the patients for the first ICU stay
-patients_tble <- patients_tble %>%
-  arrange(subject_id) %>%
   semi_join(icustays_tble, by = c("subject_id")) %>%
   show_query() %>%
   print(width = Inf)
@@ -133,12 +121,10 @@ choice_lab <- c(50912, 50971, 50983, 50902, 50882,
                 51221, 51301, 50931, 50960, 50893)
 
 labevents_tble <- labevents_tble %>%
-  arrange(subject_id, itemid) %>%
-  # only contain these items for the patients in icustays_tble
+  # filter out 10 lab items
+  select(subject_id, itemid, charttime, valuenum) %>%
   filter(itemid %in% choice_lab) %>%
   semi_join(icustays_tble, by = c("subject_id")) %>%
-  # add label in d_labitems
-  left_join(select(d_labitems_tble, itemid, label), by = c("itemid")) %>%
   show_query() %>%
   print(width = Inf)
 ```
@@ -147,20 +133,24 @@ Only keep the first lab measurements during ICU stay and pivot lab items to beco
 **Solution:** Here is my code. I avoided an error in BigQuery by adding `lab` at the beginning of the `itemid`, using `names_prefix`.
 ```{r warning = FALSE}
 labevents_tble <- labevents_tble %>%
-  # add intime & outtime from icustays_tble to find the first lab measurement
-  left_join(select(icustays_tble, subject_id, intime, outtime), 
-            by = c("subject_id")) %>%
   # keep only lab measurements between intime and outtime
+  left_join(select(icustays_tble, subject_id, intime, outtime),
+            by = c("subject_id")) %>%
   filter(charttime >= intime, charttime <= outtime) %>%
+  show_query() %>%
+  print(width = Inf)
+
+labevents_tble <- labevents_tble %>%
   # sort charttime in ascending order by subject_id and item_id
+  select(subject_id, itemid, charttime) %>%
   group_by(subject_id, itemid) %>%
-  # keep only the first lab measurement by group
   summarise_all(min) %>%
-  # keep only 11 columns and spread label and valuenum
-  ungroup() %>%
-  select(c(subject_id, itemid, valuenum)) %>%
+  left_join(labevents_tble, by = c("subject_id", "itemid", "charttime")) %>%
+  # keep only 11 columns and spread itemid and valuenum
+  select(-charttime, -intime, -outtime) %>%
   # spread valuenum by itemid 
-  pivot_wider(names_from = itemid, values_from = valuenum, 
+  pivot_wider(names_from = itemid, 
+              values_from = valuenum, 
               names_prefix = "lab") %>%
   show_query() %>%
   print(width = Inf) 
@@ -182,12 +172,13 @@ d_items_tble <- tbl(con, "d_items") %>%
 choice_chart <- c(220045, 220181, 220179, 223761, 220210)
 
 chartevents_tble <- chartevents_tble %>%
-  arrange(subject_id, itemid) %>%
+  # only containing these items for the patients in icustays_tble
+  select(stay_id, itemid, charttime, valuenum) %>%
   # only containing these items for the patients in icustays_tble
   filter(itemid %in% choice_chart) %>%
-  semi_join(icustays_tble, by = c("subject_id")) %>%
-  # add label in d_items
-  left_join(select(d_items_tble, itemid, label), by = c("itemid")) %>%
+  semi_join(icustays_tble, by = c("stay_id")) %>%
+  # # add label in d_items
+  # left_join(select(d_items_tble, itemid, label), by = c("itemid")) %>%
   show_query() %>%
   print(width = Inf)
 ```
@@ -197,19 +188,25 @@ Only keep the first chart events during ICU stay and pivot chart events to becom
 ```{r warning = FALSE}
 chartevents_tble <- chartevents_tble %>%
   # add intime & outtime from icustays_tble to find the first vital measurement
-  left_join(select(icustays_tble, subject_id, intime, outtime), 
-            by = c("subject_id")) %>%
+  left_join(select(icustays_tble, stay_id, intime, outtime), 
+            by = c("stay_id")) %>%
   # keep only vital measurements between intime and outtime
   filter(charttime >= intime, charttime <= outtime) %>%
+  show_query() %>%
+  print(width = Inf)
+
+chartevents_tble <- chartevents_tble %>%
+  select(stay_id, itemid, charttime) %>%
   # sort charttime in ascending order by subject_id and item_id
-  group_by(subject_id, itemid) %>%
+  group_by(stay_id, itemid) %>%
   # keep only the first vital measurement by group
   summarise_all(min) %>%
+  left_join(chartevents_tble, by = c("stay_id", "itemid", "charttime")) %>%
   # restrict columns and spread label and valuenum
-  ungroup() %>%
-  select(c(stay_id, itemid, valuenum)) %>%
+  select(-charttime, -intime, -outtime) %>%
   # spread valuenum by itemid 
-  pivot_wider(names_from = itemid, values_from = valuenum, 
+  pivot_wider(names_from = itemid, 
+              values_from = valuenum, 
               names_prefix = "chart") %>%
   show_query() %>%
   print(width = Inf)
