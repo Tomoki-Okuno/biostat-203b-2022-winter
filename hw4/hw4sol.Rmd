@@ -150,7 +150,13 @@ The correct Multiple Imputation strategy is to pool completed versions of impute
 library(mice)
 # complete imputed data sets
 icu_cohort_complete <- completeData(icu_cohort_imputed)
-icu_cohort_choice <- icu_cohort_complete[[1]]
+icu_cohort_choice <- icu_cohort_complete[[2]]
+
+# convert characters to factors
+icu_cohort_factor <- icu_cohort_choice %>%
+  mutate_if(is.character, as.factor) %>%
+  mutate_if(is.logical, as.factor) %>%
+  print(width = Inf)
 ```
 
 ## Q2. Predicting 30-day mortality
@@ -165,19 +171,14 @@ I installed caret package to split data into 80% training set and 20% test set.
 library(caTools)
 library(caret)
 set.seed(3456)
-# index <- createDataPartition(icu_cohort_choice$thirty_day_mort,
-#                                   p = .8,
-#                                   list = FALSE,
-#                                   times = 1)
-# training_set <- icu_cohort_choice[index, ]
-# test_set <- icu_cohort_choice[-index, ]
+index <- createDataPartition(icu_cohort_factor$thirty_day_mort,
+                                  p = .8, list = FALSE)
+training_set <- icu_cohort_factor[index, ]
+test_set <- icu_cohort_factor[-index, ]
 
-split = sample.split(icu_cohort_choice$thirty_day_mort, SplitRatio = 0.8)
-training_set = subset(icu_cohort_choice, split == TRUE)
-test_set = subset(icu_cohort_choice, split == FALSE)
-
-# training_set[, -c(1, 3:5)] = scale(training_set[, -c(1, 3:5)] )
-# test_set[, -c(1, 3:5)] = scale(tstset[, -c(1, 3:5)] )
+# split = sample.split(icu_cohort_factor$thirty_day_mort, SplitRatio = 0.8)
+# training_set = subset(icu_cohort_factor, split == TRUE)
+# test_set = subset(icu_cohort_factor, split == FALSE)
 ```
 
 2. Train the models using the train set.
@@ -199,16 +200,23 @@ predict_logstc <- ifelse(prob_logstc > 0.5, TRUE, FALSE)
 table(observed = test_set$thirty_day_mort, predicted = predict_logstc)
 # compute accuracy 
 cat('Test accuracy', mean(predict_logstc == test_set$thirty_day_mort))
+
+# confusionMatrix(as.factor(predict_logstc), 
+#                 as.factor(test_set$thirty_day_mort))
 ```
 
 **(2)** logistic regression with lasso penalty using glmnet package
 ```{r}
 library(glmnet)
-# define x and y
-x <- model.matrix(thirty_day_mort ~ ., training_set)
-y <- training_set$thirty_day_mort
+# convert x to matrix
+x_train <- model.matrix(thirty_day_mort ~ ., training_set)
+y_train <- training_set$thirty_day_mort
+x_test <- model.matrix(test_set$thirty_day_mort ~ ., test_set)
+y_test <- test_set$thirty_day_mort
+```
+```{r}
 # find optimal value of lambda (alpha=1 => lasso)
-cv.out <- cv.glmnet(x, y, alpha = 1, family = "binomial", type.measure = "auc")
+cv.out <- cv.glmnet(x_train, y_train, alpha = 1, family = "binomial", type.measure = "auc")
 cv.out
 # plot(cv.out)
 # min value of lambda
@@ -219,120 +227,69 @@ lambda_1se <- cv.out$lambda.1se
 coef(cv.out, s = lambda_1se)
 ```
 ```{r}
-#get test data
-x_test <- model.matrix(test_set$thirty_day_mort ~ ., test_set)
 # predict 30-day mortality using the model
 prob_lasso <- predict(cv.out, newx = x_test, s = lambda_1se, type = "response")
 # translate probabilities to predictions
 predict_lasso <- ifelse(prob_lasso > 0.5, TRUE, FALSE)
 # make confusion matrix for the fitted value versus 30-day mortality in test
-table(observed = test_set$thirty_day_mort, predicted = predict_lasso)
+table(observed = y_test, predicted = predict_lasso)
 # compute accuracy 
 cat('Test accuracy', mean(predict_lasso == test_set$thirty_day_mort))
 ```
 **(3)** random forest (randomForest package)
 ```{r}
 library(randomForest)
-
-# character to factor
-training_set2 = training_set %>%
-  mutate_if(is.character, as.factor)
-test_set2 = test_set %>%
-  mutate_if(is.character, as.factor)
-
-# thirty_day_mort logic to factor
-training_set2 <- transform(
-  training_set2,
-  thirty_day_mort = as.factor(thirty_day_mort)
-)
-test_set2 <- transform(
-  test_set2,
-  thirty_day_mort = as.factor(thirty_day_mort)
-)
-
-model.rf <- randomForest(thirty_day_mort ~ ., data = training_set2, ntree = 500)
-predict_rf <- predict(model.rf, test_set2)
-
+# fit the model
+model.rf <- randomForest(thirty_day_mort ~ ., data = training_set, ntree = 500)
+# predict 30-day mortality using the model
+predict_rf <- predict(model.rf, test_set)
+# make confusion matrix
 table(observed = test_set$thirty_day_mort, predicted = predict_rf)
-cat('Test accuracy', mean(predict_rf == test_set2$thirty_day_mort))
+# compute accuracy 
+cat('Test accuracy', mean(predict_rf == test_set$thirty_day_mort))
 ```
 **(4)** neural network (keras package)
 ```{r}
+# install_keras(tensorflow=2.6) 
+# install_keras() 
+# virtualenv_create("r-reticulate")
 library(keras)
 library(tensorflow)
-
-# install_keras(tensorflow=2.6) on console
-# install_keras() on console
-# library(reticulate)
-# virtualenv_create("r-reticulate")
-               
-set.seed(528)
-x_train <- scale(training_set[, -c(1, 3:5)])
-y_train <- training_set$thirty_day_mort
-
-x_test <- scale(test_set[, -c(1, 3:5)])
-y_test <- test_set$thirty_day_mort
-
-x_train <- array(as.numeric(x_train), dim = c(dim(x_train)[[1]], 19))
-x_test <- array(as.numeric(x_test), dim = c(dim(x_test)[[1]], 19))
-
-model <- keras_model_sequential()
-model %>%
-  layer_dense(units = 12, activation = 'selu', input_shape = c(19)) %>%
-  layer_dense(units = 7, activation = 'relu')  %>%
-  layer_dense(units = 1)
-summary(model) 
 ```
-
 ```{r}
-library(keras)
-set.seed(528)
-#icu_cohort_shuffle <- icu_cohort_q2[sample(nrow(icu_cohort_q2)), ]
-x_train <- scale(training_set[, -5])
-y_train <- training_set$thirty_day_mort
-
-x_test <- scale(test_set[, -5])
-y_test <- test_set$thirty_day_mort
-
-cat(length(x_train), 'train sequences\n')
-cat(length(x_test), 'test sequences\n')
-cat(length(x_test), 'test sequences\n')
-x_train <- pad_sequences(x_train, maxlen = maxlen)
-x_test <- pad_sequences(x_test, maxlen = maxlen)
-cat('x_train shape:', dim(x_train), '\n')
-cat('x_test shape:', dim(x_test), '\n')
-cat('Build model...\n')
-
+# data preparation for neural network
+x_train_array <- array_reshape(x_train, c(nrow(x_train), 28))
+x_test_array <- array_reshape(x_test, c(nrow(x_test), 28))
+y_train_num <- as.numeric(y_train)
+y_test_num <- as.numeric(y_test)
+```
+```{r}
+# define the model
 model <- keras_model_sequential()
-model %>%
-  layer_embedding(input_dim = max_features, output_dim = 128) %>% 
-  layer_lstm(units = 64, dropout = 0.2, recurrent_dropout = 0.2) %>% 
-  layer_dense(units = 1, activation = 'sigmoid')
-
-# Try using different optimizers and different optimizer configs
-model %>% compile(
-  loss = 'binary_crossentropy',
-  optimizer = 'adam',
-  metrics = c('accuracy')
-)
+model %>% 
+  layer_dense(units = 10, activation = 'relu', input_shape = c(28)) %>% 
+  layer_dropout(rate = 0.4) %>%
+  layer_dense(units = 5, activation = 'relu') %>%
+  layer_dropout(rate = 0.4) %>%
+  layer_dense(units = 1, activation = 'softmax')
 summary(model)
 
-cat('Train...\n')
-system.time({
-model %>% fit(
-  x_train, y_train,
-  batch_size = batch_size,
-  epochs = 10,
-  validation_data = list(x_test, y_test)
+# compile the model
+model %>% compile(
+  loss = 'binary_crossentropy',
+  optimizer = optimizer_rmsprop(),
+  metrics = c('accuracy')
 )
-})
-
-scores <- model %>% evaluate(
-  x_test, y_test,
-  # batch_size = batch_size
-)
-
-cat('Test score:', scores[[1]])
-cat('Test accuracy', scores[[2]])
-
+# Train and validate
+history <- model %>%
+  fit(
+    x_train_array, 
+    y_train_num, 
+    epochs = 20, 
+    batch_size = 100, 
+    validation_spl1t = 0.2
+  )
+plot(history)
+# Test and output accuracy
+model %>% evaluate(x_test_array, y_test_num)
 ```
