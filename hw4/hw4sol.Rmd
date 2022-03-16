@@ -315,7 +315,8 @@ history <- model_nn %>%
   )
 
 # predict 30-day mortality using the model
-predict_neural <- evaluate(model_nn, x_test_array, y_test_num)
+predict_neural <- evaluate(model_nn, x_test_array, y_test_num) %>%
+  print(width = Inf)
 prob_neural <- predict(model_nn, x_test_array)
 ```
 The neural network approach also provided roughly 90% accuracy, although I tried some sequential models.
@@ -339,8 +340,8 @@ plot(perf3, add = T, col = 3)
 plot(perf4, add = T, col = 5)
 title("ROC curves for the four approaches")
 abline(a = 0, b = 1, lty = 2)
-text(0.18, 0.4,'Logistic', col = 4)
-text(0.4, 0.55,'Logistic with Lasso panelty', col = 2)
-text(0.35, 0.95,'Random forest', col = 3)
-text(0.2, 0.8,'Neural network', col = 5)
+text(0.18, 0.4, 'Logistic', col = 4)
+text(0.4, 0.55, 'Logistic with Lasso panelty', col = 2)
+text(0.35, 0.95, 'Random forest', col = 3)
+text(0.2, 0.8, 'Neural network', col = 5)
 ```
