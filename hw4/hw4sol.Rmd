@@ -86,7 +86,7 @@ summary(icu_cohort_replace)
 4. Impute missing values by `miceRanger` (request $m=3$ data sets). This step is computational intensive. Make sure to save the imputation results as a file. Hint: Setting `max.depth=10` in the `miceRanger` function may cut some computing time.
 
 **Solution:**  
-I kept only variables of interest and used `miceRanger` to save three imputed data sets to a `icu_cohort_imputed.rds`.
+I kept only variables of interest and used `miceRanger` to save three imputed data sets to `icu_cohort_imputed.rds`.
 ```{r}
 # choose variables of interest
 demo_var = c("gender", "age_hadm", "marital_status", "ethnicity",
@@ -144,14 +144,12 @@ These plots help us compare the imputed distribution (black lines) to the origin
 plotDistributions(icu_cohort_imputed, vars = 'allNumeric')
 ```
 
-Model OOB Error:  
-We can take a look at out-of-bag R-squared for regression by iteration. Other than the last three vitals, these variables appear to converge as they are repeated.
+Model OOB Error: We can take a look at out-of-bag R-squared for regression by iteration. Other than the last three vitals, these variables appear to converge as they are repeated.
 ```{r}
 plotModelError(icu_cohort_imputed,vars = 'allNumeric')
 ```
 
-Variable Importance:
-The table below shows which variables were used to impute each variable. Overall, each lab measurement was important to other lab measurements, and so were vitals. In addition, gender and age at admission were also important for 50912 (creatinine).
+Variable Importance: The table below shows which variables were used to impute each variable. Overall, each lab measurement was important to other lab measurements, and so were vitals. In addition, gender and age at admission were also important for 50912 (creatinine).
 ```{r}
 plotVarImportance(icu_cohort_imputed)
 # plotCorrelations(icu_cohort_imputed, vars = 'allNumeric')
@@ -162,17 +160,17 @@ plotVarImportance(icu_cohort_imputed)
 6. Choose one of the imputed data sets to be used in Q2. This is **not** a good idea to use just one imputed data set or to average multiple imputed data sets. Explain in a couple of sentences what the correct Multiple Imputation strategy is.
 
 **Solution:**  
-The correct Multiple Imputation strategy is to pool $m$ imputed data sets, that is, integrate $m$ parameter estimates given by `miceRanger`, accounting for uncertainty (differences in variation) among imputed values. The variance combines the within-imputation and between-imputation variance, The pooled estimates are unbiased and have the valid statistical properties compared to using one imputed data set or averaging multiple imputed data sets.
+The correct Multiple Imputation strategy is to pool $m$ imputed data sets, that is, integrate $m$ parameter estimates given by `miceRanger`, accounting for uncertainty (differences in variation) among imputed values. The variance combines the within-imputation and between-imputation variance. The pooled estimates are unbiased and have valid statistical properties compared to using one imputed data set or averaging multiple imputed data sets.
 ```{r}
 # complete imputed data sets
 icu_cohort_complete <- completeData(icu_cohort_imputed)
 # choose one of the imputed data sets
-icu_cohort_choice <- icu_cohort_complete[[2]]
-
-# convert non-numerics to factors
+icu_cohort_choice <- icu_cohort_complete[[1]]
+# convert non-numeric variables to factors and scale numeric variables
 icu_cohort_factor <- icu_cohort_choice %>%
   mutate_if(is.character, as.factor) %>%
-  mutate_if(is.logical, as.factor)
+  mutate_if(is.logical, as.factor) %>%
+  mutate_if(is.numeric, scale)
 ```
 
 ## Q2. Predicting 30-day mortality
@@ -182,7 +180,7 @@ Develop at least two analytic approaches for predicting the 30-day mortality of 
 1. Partition data into 80% training set and 20% test set. Stratify partitioning according the 30-day mortality status.
 
 **Solution:**  
-I installed caret package to split data into 80% training set and 20% test set. By the way, caTools package can be also used.
+I installed caret package to split data into 80% training set and 20% test set. By the way, caTools package can also be used.
 ```{r}
 library(caret)
 set.seed(3456)
@@ -220,7 +218,7 @@ cat('Test accuracy', mean(predict_logstc == test_set$thirty_day_mort))
 # confusionMatrix(as.factor(predict_logstc),
 #                 as.factor(test_set$thirty_day_mort))
 ```
-Accuracy by prediction on the test set was about 90%, which changed little when the threshold was increased.
+Accuracy by prediction on the test set was about 90%, which changed little when the threshold was further increased.
 
 **(2)** Logistic regression with lasso penalty using glmnet package
 ```{r}
@@ -282,55 +280,67 @@ library(tensorflow)
 # data preparation for neural network
 x_train_array <- array_reshape(x_train, c(nrow(x_train), 28))
 x_test_array <- array_reshape(x_test, c(nrow(x_test), 28))
-y_train_num <- as.numeric(y_train)
-y_test_num <- as.numeric(y_test)
+y_train_num <- as.numeric(y_train) - 1
+y_test_num <- as.numeric(y_test) - 1
+# encode y as binary class matrix
+y_train_num <- to_categorical(y_train_num, 2)
+y_test_num <- to_categorical(y_test_num, 2)
 ```
 ```{r}
-# define and complile the model
-model <- keras_model_sequential()
-model %>% 
-  layer_dense(units = 10, activation = 'relu', input_shape = c(28)) %>% 
+# define the model
+model_nn <- keras_model_sequential()
+model_nn %>% 
+  layer_dense(units = 20, activation = 'relu', input_shape = c(28)) %>%
   layer_dropout(rate = 0.4) %>%
-  layer_dense(units = 7, activation = 'relu') %>%
+  layer_dense(units = 10, activation = 'relu') %>%
   layer_dropout(rate = 0.3) %>%
-  layer_dense(units = 1, activation = 'softmax')
-summary(model)
+  layer_dense(units = 2, activation = 'softmax')
+  # layer_dense(input_shape = c(28), units = 2, activation = 'softmax')
+summary(model_nn)
+
 # compile the model
-model %>% compile(
+model_nn %>% compile(
   loss = 'binary_crossentropy',
   optimizer = optimizer_rmsprop(),
   metrics = c('accuracy')
 )
 # train and validate
-history <- model %>%
+history <- model_nn %>%
   fit(
     x_train_array, 
     y_train_num, 
-    epochs = 15, 
-    batch_size = 100, 
+    epochs = 200, 
+    batch_size = 10000, 
     validation_spl1t = 0.2,
   )
-# Test and output accuracy
-model %>% evaluate(x_test_array, y_test_num)
+
+# predict 30-day mortality using the model
+predict_neural <- evaluate(model_nn, x_test_array, y_test_num)
+prob_neural <- predict(model_nn, x_test_array)
 ```
-Neural network approach also provided roughly 90% accuracy, although I tried some sequential models.
+The neural network approach also provided roughly 90% accuracy, although I tried some sequential models.
 
 **Conclusion:**  
-The ROC curves for these approaches are shown below, indicating that random forests had higher prediction accuracy than the first two methods. Unfortunately, I was unable to obtain a ROC curve for the neural network, but generally, neural networks should have the best accuracy. Also, executing the correct multiple imputation strategy or dividing data into three to use a validation dataset may improve the accuracy.
+The ROC curves for these approaches are shown below. In this data set, the random forest and the neural network methods indicated better prediction accuracy than the first two ones. This is because the closer that the curve is to the top-left corner, the better the model is. However, the data set was too simple for these two methods to have real power. Also, executing the correct multiple imputation strategy or dividing data into three to use a validation data set may improve the accuracy.
 ```{r}
-# ROC curve
+# create ROC curve
 library(ROCR)
 pred1 <- prediction(prob_logstc, y_test)
 pred2 <- prediction(prob_lasso, y_test)
 pred3 <- prediction(prob_rf[2], y_test)
+pred4 <- prediction(prob_neural[, 2], y_test)
 perf1 <- performance(pred1, 'tpr', 'fpr')
 perf2 <- performance(pred2, 'tpr', 'fpr')
 perf3 <- performance(pred3, 'tpr', 'fpr')
+perf4 <- performance(pred4, 'tpr', 'fpr')
 plot(perf1, col = 4)
 plot(perf2, add = T, col = 2)
 plot(perf3, add = T, col = 3)
+plot(perf4, add = T, col = 5)
+title("ROC curves for the four approaches")
 abline(a = 0, b = 1, lty = 2)
-text(0.2, 0.8,'Logistic', col = 4)
-text(0.4, 0.5,'Logistic with Lasso panelty', col = 2)
+text(0.18, 0.4,'Logistic', col = 4)
+text(0.4, 0.55,'Logistic with Lasso panelty', col = 2)
 text(0.35, 0.95,'Random forest', col = 3)
+text(0.2, 0.8,'Neural network', col = 5)
 ```
