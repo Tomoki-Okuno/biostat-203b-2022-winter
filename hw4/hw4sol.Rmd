@@ -42,12 +42,12 @@ These terminologies represent the missing data mechanism.
 
 - MCAR stands for missing completely at random: Missingness is independent of any data. The type of data is rarely found in real data.
 - MAR stands for missing at random. Missingness does not depend on the missing data but on the observed data. For instance, the older a person is, the more likely the data on income are to be missing. The probability of missing data is randomly generated conditional on the observed data.  
-- MNAR stands for missing not at Random: Missingness depends on the missing data itself. For example, the lower your income, the less likely you may be to report your income.
+- MNAR stands for missing not at Random: Missingness depends on the missing data itself. For example, the lower your income is, the less likely you may be to report your income.
 
 2. Explain in a couple of sentences how the Multiple Imputation by Chained Equations (MICE) work.
 
 **Solution:**  
-While the single imputation supplements each missing data with an imputed value as the true value, the multiple imputation iterates this procedure until convergence to integrate the given estimates to take into account the uncertainty due to missing values. MICE, one of the most typical methods, starts with a random draw from the observed data, and imputes missing values several times (e.g., 5 or 10 times) by regressing each missing variable on the remaining variables under the assumption the missing data are MAR.
+While the single imputation supplements each missing data with an imputed value as the true value, the multiple imputation iterates this procedure until convergence to integrate the given estimates to take into account the uncertainty due to missing values. MICE, one of the most typical methods, starts with a random draw from the observed data, and imputes missing values several times (e.g., 5 or 10 times) by regressing each missing variable on the remaining variables under the assumption of the missing data are MAR.
 
 3. Perform a data quality check of the ICU stays data. Discard variables with substantial missingness, say >5000 `NA`s. Replace apparent data entry errors by `NA`s.
 
@@ -166,6 +166,10 @@ The correct Multiple Imputation strategy is to pool $m$ imputed data sets, that 
 icu_cohort_complete <- completeData(icu_cohort_imputed)
 # choose one of the imputed data sets
 icu_cohort_choice <- icu_cohort_complete[[1]]
+```
+
+**Data preparation:**
+```{r}
 # convert non-numeric variables to factors and scale numeric variables
 icu_cohort_factor <- icu_cohort_choice %>%
   mutate_if(is.character, as.factor) %>%
@@ -231,7 +235,9 @@ y_test <- test_set$thirty_day_mort
 ```
 ```{r}
 # find optimal value of lambda (alpha=1 => lasso)
-cv.out <- cv.glmnet(x_train, y_train, alpha = 1, family = "binomial", type.measure = "auc")
+cv.out <- cv.glmnet(x_train, y_train, alpha = 1, 
+                    family = "binomial", 
+                    type.measure = "auc")
 cv.out
 # plot(cv.out)
 # min value of lambda
@@ -266,7 +272,7 @@ table(observed = test_set$thirty_day_mort, predicted = predict_rf)
 # compute accuracy 
 cat('Test accuracy', mean(predict_rf == test_set$thirty_day_mort))
 ```
-Accuracy was around 90% again, which also remained unchanged even when the number of trees was increased.
+Again, it was around 90% accuracy, which also remained unchanged even when the number of trees was increased.
 
 **(4)** Neural network (keras package)
 ```{r}
