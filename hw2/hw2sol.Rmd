@@ -310,10 +310,17 @@ if (file.exists("labevents_tble.rds")) {
   labevents_tble <- read_rds("labevents_tble.rds")
 } else {
   labevents_tble <- labevents_tble %>%
+<<<<<<< HEAD
     # add intime from icustays_tble to find the first lab measurement
     left_join(select(icustays_tble, subject_id, intime, outtime), 
               by = c("subject_id")) %>%
     # keep only lab measurements after intime
+=======
+    # add intime and outtime from icustays_tble to find the first lab measurement
+    left_join(select(icustays_tble, subject_id, intime, outtime), 
+              by = c("subject_id")) %>%
+    # keep only lab measurements between intime and outtime
+>>>>>>> develop
     filter(charttime >= intime, charttime <= outtime) %>%
     # sort charttime in ascending order by subject_id and item_id
     group_by(subject_id, itemid) %>%
@@ -410,10 +417,17 @@ if (file.exists("chartevents_tble.rds")) {
   chartevents_tble <- read_rds("chartevents_tble.rds")
 } else {
   chartevents_tble <- chartevents_tble %>%
+<<<<<<< HEAD
     # add intime from icustays_tble to find the first vital measurement
     left_join(select(icustays_tble, subject_id, intime, outtime), 
               by = c("subject_id")) %>%
     # keep only vital measurements after intime
+=======
+    # add intime and outtime from icustays_tble to find the first vital measurement
+    left_join(select(icustays_tble, subject_id, intime, outtime), 
+              by = c("subject_id")) %>%
+    # keep only vital measurements between intime and outtime
+>>>>>>> develop
     filter(charttime >= intime, charttime <= outtime) %>%
     # sort charttime in ascending order by subject_id and item_id
     group_by(subject_id, itemid) %>%
@@ -608,7 +622,7 @@ mimic_icu_cohort %>%
             Q3     = quantile(value, 0.75, na.rm = TRUE))  
 # graphical summary
 mimic_icu_cohort %>%
-  gather(27:36, key="key", value="value") %>%
+  gather(27:36, key = "key", value = "value") %>%
   group_by(key) %>%
   filter(value > quantile(value, 0.025, na.rm = TRUE) 
          & value < quantile(value, 0.975, na.rm = TRUE)) %>%
@@ -643,7 +657,7 @@ mimic_icu_cohort %>%
             Q3     = quantile(value, 0.75, na.rm = TRUE))  
 # graphical summary
 mimic_icu_cohort %>%
-  gather(37:41, key="key", value="value") %>%
+  gather(37:41, key = "key", value = "value") %>%
   group_by(key) %>%
   filter(value > quantile(value, 0.025, na.rm = TRUE) 
          & value < quantile(value, 0.975, na.rm = TRUE)) %>%
@@ -673,7 +687,7 @@ mimic_icu_cohort %>%
   labs(y = "percent") +
   scale_y_continuous(labels = scales::percent) +
   labs(title = "Proportion for the first ICU unit by 30 day mortality") +
-  labs(x = "30 day mortality", fill ="First ICU unit")
+  labs(x = "30 day mortality", fill = "First ICU unit")
 ```
 
 **Brief comment:** The proportion of CVICU for patients who died within 30 days is 14 points lower than that of those who did not. On the other hand, for MICU, the proportion of patients who died within 30 days is 9 points higher. Other than that, there appears to be little difference.
