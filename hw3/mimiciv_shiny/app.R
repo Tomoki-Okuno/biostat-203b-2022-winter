@@ -2,8 +2,8 @@ library(shiny)
 library(dplyr)
 library(ggplot2)
 library(datasets)
-library(lubridate)
 library(tidyverse)
+library(lubridate)
 
 # import icu_cohort data as a tibble
 data <- read_rds("icu_cohort.rds")
